@@ -11,7 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   isc_shared_msgs
   serial
   serial_utils
-  message_generation
+#  message_generation
   roscpp
   std_msgs
 )
@@ -71,10 +71,10 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-generate_messages(
-  DEPENDENCIES
-  isc_shared_msgs#   std_msgs
-)
+# generate_messages(
+#   DEPENDENCIES
+#   isc_shared_msgs#   std_msgs
+# )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -108,7 +108,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES isc_roboteq_hdc2460
-  CATKIN_DEPENDS isc_shared_msgs serial serial_utils message_runtime roscpp std_msgs
+  CATKIN_DEPENDS isc_shared_msgs serial serial_utils roscpp std_msgs #message_runtime
 #  DEPENDS system_lib
 )
 
@@ -154,7 +154,8 @@ include_directories(
 # )
 
 add_executable(roboteq_hdc2460 src/roboteq_hdc2460.cpp)
-add_dependencies(roboteq_hdc2460 ${PROJECT_NAME}_generate_messages_cpp)
+#add_dependencies(roboteq_hdc2460 ${PROJECT_NAME}_generate_messages_cpp)
+add_dependencies(roboteq_hdc2460 ${catkin_EXPORTED_TARGETS})
 target_link_libraries(roboteq_hdc2460 ${serial_LIBRARIES} ${serial_utils_LIBRARIES} ${catkin_LIBRARIES})
 
 #############

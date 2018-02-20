@@ -55,7 +55,7 @@
   <build_depend>isc_shared_msgs</build_depend>
   <build_depend>serial</build_depend>
   <build_depend>serial_utils</build_depend>
-  <build_depend>message_generation</build_depend>
+  <!-- <build_depend>message_generation</build_depend> -->
   <build_depend>roscpp</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_export_depend>isc_shared_msgs</build_export_depend>
@@ -66,7 +66,7 @@
   <exec_depend>isc_shared_msgs</exec_depend>
   <exec_depend>serial</exec_depend>
   <exec_depend>serial_utils</exec_depend>
-  <exec_depend>message_runtime</exec_depend>
+  <!-- <exec_depend>message_runtime</exec_depend> -->
   <exec_depend>roscpp</exec_depend>
   <exec_depend>std_msgs</exec_depend>
 
