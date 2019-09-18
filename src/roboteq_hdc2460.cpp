@@ -1,5 +1,5 @@
 #include "ros/ros.h"
-#include "isc_shared_msgs/wheel_speeds.h"
+#include <geometry_msgs/Twist.h>
 
 #include <math.h>
 #include <serial/serial.h>
@@ -20,14 +20,14 @@ serial::utils::SerialListener serialListener;
 bool roboteqIsConnected = false;
 double leftSpeed = 0, rightSpeed = 0;
 
-void driveModeCallback(const isc_shared_msgs::wheel_speeds::ConstPtr& msg){	
+void driveModeCallback(const geometry_msgs::Twist::ConstPtr& msg){	
 	/* This fires every time a button is pressed/released
 	and when an axis changes (even if it doesn't leave the
 	deadzone). */
 	float speedMultiplier = 127.0; 
 
-	leftSpeed = msg->left * speedMultiplier;
-	rightSpeed = msg->right * speedMultiplier;
+	leftSpeed = (msg->linear.x - msg->angular.z) * speedMultiplier;
+	rightSpeed = (msg->linear.x + msg->angular.z) * speedMultiplier;
 	
 	ROS_INFO("Roboteq: left wheel=%f right wheel=%f", leftSpeed, rightSpeed);
 }
@@ -153,7 +153,7 @@ void move(){
 int main(int argc, char **argv){
 	ros::init(argc, argv, "roboteq_hdc2460");
 
-	ros::NodeHandle n;
+	ros::NodeHandle n("~");
 
 	// Serial port parameter
 	n.param("serial_port", port, std::string("/dev/ttyUSB0"));
