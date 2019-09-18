@@ -1,0 +1,4 @@
+<launch>
+    <param name="serial_port" value="/dev/ttyUSB0"/>
+    <node pkg="isc_roboteq_hdc2460" type="roboteq_hdc2460" name="roboteq"/>
+</launch>
