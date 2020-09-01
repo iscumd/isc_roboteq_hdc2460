@@ -7,12 +7,6 @@
 #include <sstream>
 #include <string>
 
-using std::string;
-using std::stringstream;
-using serial::Serial;
-using serial::utils::SerialListener;
-using serial::utils::BufferedFilterPtr;
-
 //serial code based on https://github.com/wjwwood/ax2550/
 std::string port;
 serial::Serial *serialPort;
@@ -55,7 +49,7 @@ void connect(){
 
 	disconnect();
 
-	serialPort = new Serial();
+	serialPort = new serial::Serial();
 	serialPort->setPort(port);
  	serialPort->setBaudrate(9600);
   	serialPort->setParity(serial::parity_even);
@@ -74,9 +68,9 @@ void connect(){
 
 inline string stringFormat(const string &fmt, ...) {
   int size = 100;
-  string str;
+  std::string str;
   va_list ap;
-  while (1) {
+  while (true) {
 	str.resize(size);
 	va_start(ap, fmt);
 	int n = vsnprintf((char *)str.c_str(), size, fmt.c_str(), ap);
@@ -102,14 +96,14 @@ inline bool isPlusOrMinus(const string &token) {
 }
 
 bool sendCommand(string command){
-	BufferedFilterPtr echoFilter = serialListener.createBufferedFilter(SerialListener::exactly(command));
+	serial::utils::BufferedFilterPtr echoFilter = serialListener.createBufferedFilter(serial::utils::SerialListener::exactly(command));
 	serialPort->write(command+"\r");
 	if (echoFilter->wait(50).empty()) {
 		ROS_ERROR("Failed to receive an echo from the Roboteq.");
 		return false;
 	}
-	BufferedFilterPtr plusMinusFilter = serialListener.createBufferedFilter(isPlusOrMinus);
-	string result = plusMinusFilter->wait(100);
+	serial::utils::BufferedFilterPtr plusMinusFilter = serialListener.createBufferedFilter(isPlusOrMinus);
+	std::string result = plusMinusFilter->wait(100);
 	if(result != "+"){
 		if(result == "-"){
 			ROS_ERROR("The Roboteq rejected the command.");
@@ -178,7 +172,7 @@ int main(int argc, char **argv){
 
 		if(!ros::ok()) break;
 		ROS_INFO("Will try to reconnect to the Roboteq in 5 seconds.");
-		for (int i = 0; i < 100; ++i) {
+		for (char i = 0; i < 100; ++i) {
 			ros::Duration(5.0/100.0).sleep();
 			if (!ros::ok()) break;
 		}
