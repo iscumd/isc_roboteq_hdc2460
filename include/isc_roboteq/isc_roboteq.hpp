@@ -19,7 +19,7 @@ public:
 private:
    void driveModeCallback(const geometry_msgs::Twist::ConstPtr msg);
    unsigned char constrainSpeed(double speed);
-
+   bool sendCommand(string command);
 
 };
 }  // namespace Roboteq
