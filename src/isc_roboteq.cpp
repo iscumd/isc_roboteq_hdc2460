@@ -14,11 +14,8 @@ Roboteq::Roboteq(rclcpp::NodeOptions options)
 }
 }
 
-int main(int argc, char ** argv)
+int main()
 {
-  (void) argc;
-  (void) argv;
 
-  printf("hello world isc_roboteq package\n");
   return 0;
 }

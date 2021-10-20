@@ -29,12 +29,12 @@ find_package(serial REQUIRED)
 add_executable(isc_roboteq src/isc_roboteq.cpp)
 
 ament_target_dependencies(
-  isc_roboteq
+  isc_roboteq serial
   rclcpp
   sensor_msgs
   std_msgs
   geometry_msgs
-  serial
+
 )
 
 target_include_directories(isc_roboteq PUBLIC
