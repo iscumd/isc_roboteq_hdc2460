@@ -28,6 +28,9 @@ private:
   double rightspeed;
   float speedMultipler;
   bool roboteqIsConnected;
+  double Max_Current;
+  unsigned long Baudrate;
+  std::string USB_Port;
   unsigned long baud;
 
   // class methods
