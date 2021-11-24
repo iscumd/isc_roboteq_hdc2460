@@ -12,7 +12,6 @@
 #include <rclcpp/rclcpp.hpp>
 #include "std_msgs/msg/header.hpp"
 #include "geometry_msgs/msg/twist.hpp"
-#include "serial/serial.h"
 
 using std::string;
 
@@ -28,16 +27,17 @@ private:
   double leftspeed;
   double rightspeed;
   float speedMultipler;
-  std::string port;
-  serial::Serial my_serial;
   bool roboteqIsConnected;
+  unsigned long baud;
 
   // class methods
   void driveCallBack(const geometry_msgs::msg::Twist::SharedPtr msg);
   void disconnect();
   void connect();
   unsigned char constrainSpeed(double speed);
-  bool send_command(string command);
+  bool send_Command(string command);
+  void move();
+  void current_watchdog();
 
    // subscriber
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr Speed;
