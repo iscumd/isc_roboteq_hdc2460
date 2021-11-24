@@ -22,6 +22,8 @@ find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(serial REQUIRED)
+find_package(serial_utils REQUIRED)
+find_package(Boost 1.71 CONFIG REQUIRED COMPONENTS thread)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
@@ -29,12 +31,12 @@ find_package(serial REQUIRED)
 add_executable(isc_roboteq src/isc_roboteq.cpp)
 
 ament_target_dependencies(
-  isc_roboteq serial
+  isc_roboteq serial serial_utils
   rclcpp
   sensor_msgs
+  Boost
   std_msgs
   geometry_msgs
-
 )
 
 target_include_directories(isc_roboteq PUBLIC
@@ -43,7 +45,7 @@ target_include_directories(isc_roboteq PUBLIC
 
 install(TARGETS isc_roboteq
   DESTINATION lib/${PROJECT_NAME})
-
+  
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
