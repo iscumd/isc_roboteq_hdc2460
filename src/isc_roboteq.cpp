@@ -1,7 +1,7 @@
 #include <memory>
 #include <functional>
-#include "isc_roboteq/isc_roboteq.hpp"
 #include "std_msgs/msg/string.hpp"
+#include "isc_roboteq/isc_roboteq.hpp"
 #include <serial/serial.h>
 #include <serial/utils/serial_listener.h>
 
@@ -21,10 +21,18 @@ namespace Roboteq
 Roboteq::Roboteq(rclcpp::NodeOptions options)
 : Node("roboteq", options)
 {
+  this->declare_parameter("Max_Current");
+  this->get_parameter("Max_Current", Max_Current);
+  this->declare_parameter("USB_Port");
+  this->get_parameter("USB_Port", USB_Port);
+  this->declare_parameter("Baudrate");
+  this->get_parameter("Baudrate", Baudrate);
+  
   rightspeed = 0;
   leftspeed = 0;
   roboteqIsConnected = false;
   connect();
+   
   Speed = this->create_subscription<geometry_msgs::msg::Twist>(
     "/cmd_vel", 10,
     std::bind(&Roboteq::driveCallBack, this, std::placeholders::_1));
@@ -47,21 +55,21 @@ Roboteq::Roboteq(rclcpp::NodeOptions options)
 // setup USB protocol parameters
 void Roboteq::connect()
 {
-
-  port = "/dev/ttyUSB0";
-  baud = 9600;
-  
 	if(roboteqIsConnected){
 		RCLCPP_WARN(this->get_logger(), "%s","Roboteq already connected:)");
 		return;
 	}
-	if(port.empty()){
+	if(USB_Port.empty()){
 		RCLCPP_ERROR(this->get_logger(), "%s","Invalid or Empty Serial Port name:(");
 		return;
 	}
 	
-  serialPort.setPort(port);
-  serialPort.setBaudrate(baud);
+  RCLCPP_INFO(this->get_logger(), "%s%lf","Max_Current is ", Max_Current);
+  std::cout << USB_Port << std::endl;
+  std::cout << Baudrate << std::endl;
+
+  serialPort.setPort(USB_Port);
+  serialPort.setBaudrate(Baudrate);
   serialPort.open();
   serialListener.setChunkSize(64);
   serialListener.startListening(serialPort);
@@ -145,6 +153,7 @@ bool Roboteq::send_Command(std::string command)
 	}
 	return true;
 }
+
 void Roboteq::move(){
 
 	if(!roboteqIsConnected){
