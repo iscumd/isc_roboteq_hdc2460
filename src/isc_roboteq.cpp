@@ -11,7 +11,6 @@ using serial::Serial;
 using serial::utils::SerialListener;
 using serial::utils::BufferedFilterPtr;
 
-string port;
 serial::Serial serialPort;
 serial::utils::SerialListener serialListener;
 serial::utils::BufferedFilterPtr echoFilter;
@@ -21,12 +20,10 @@ namespace Roboteq
 Roboteq::Roboteq(rclcpp::NodeOptions options)
 : Node("roboteq", options)
 {
-  this->declare_parameter("Max_Current");
-  this->get_parameter("Max_Current", Max_Current);
-  this->declare_parameter("USB_Port");
-  this->get_parameter("USB_Port", USB_Port);
-  this->declare_parameter("Baudrate");
-  this->get_parameter("Baudrate", Baudrate);
+  Max_Current = this->declare_parameter("Max_Current", 30.00);
+  USB_Port = this->declare_parameter("USB_Port", "/dev/ttyUSB0");
+  Baudrate = this->declare_parameter("Baudrate", 9600);
+  ChunkSize = this->declare_parameter("ChunkSize", 64);
   
   rightspeed = 0;
   leftspeed = 0;
@@ -36,22 +33,23 @@ Roboteq::Roboteq(rclcpp::NodeOptions options)
   Speed = this->create_subscription<geometry_msgs::msg::Twist>(
     "/cmd_vel", 10,
     std::bind(&Roboteq::driveCallBack, this, std::placeholders::_1));
-  move();
+  //move();
 }
 
 // Disconnect the controller from serial 
  void Roboteq::disconnect()
  {
-	if(serialListener.isListening()){
+  if(serialListener.isListening()){
 		serialListener.stopListening();
 		RCLCPP_INFO(this->get_logger(), "%s","Listener closed");
   }
-  port = "";
+
   roboteqIsConnected = false;
 	RCLCPP_INFO(this->get_logger(), "%s","Port Closed");
 }
 
 // open serial port
+// open serial listener
 // setup USB protocol parameters
 void Roboteq::connect()
 {
@@ -64,14 +62,15 @@ void Roboteq::connect()
 		return;
 	}
 	
-  RCLCPP_INFO(this->get_logger(), "%s%lf","Max_Current is ", Max_Current);
-  std::cout << USB_Port << std::endl;
-  std::cout << Baudrate << std::endl;
+  RCLCPP_INFO(this->get_logger(), "%s%lf","The Set Max Current is ", Max_Current);
+  RCLCPP_INFO(this->get_logger(), "%s%s","The Set Port to open is ", USB_Port.c_str());
+  RCLCPP_INFO(this->get_logger(), "%s%lu","The Set Baudrate is ", Baudrate);  
+  RCLCPP_INFO(this->get_logger(), "%s%d","The Set Chunksize is ", ChunkSize);
 
   serialPort.setPort(USB_Port);
   serialPort.setBaudrate(Baudrate);
   serialPort.open();
-  serialListener.setChunkSize(64);
+  serialListener.setChunkSize(ChunkSize);
   serialListener.startListening(serialPort);
   roboteqIsConnected = true;
   
@@ -103,6 +102,7 @@ void Roboteq::driveCallBack(const geometry_msgs::msg::Twist::SharedPtr msg)
   RCLCPP_INFO(this->get_logger(), "Roboteq: %s%lf%s%lf"," Right Wheel = ",rightspeed, " Left Wheel = ", leftspeed);
 }
 
+// format command string before it is sent to controller
 inline string stringFormat(const string &fmt, ...) {
   int size = 100;
   string str;
@@ -125,6 +125,9 @@ inline string stringFormat(const string &fmt, ...) {
   return str;
 }
 
+// utility function to check the response from controller
+// + equals accepted command 
+// - equals failed command
 inline bool isPlusOrMinus(const string &token) {
 	if (token.find_first_of("+-") != string::npos) {
 		return true;
@@ -133,6 +136,7 @@ inline bool isPlusOrMinus(const string &token) {
 }
 
 // send command to controller over serial
+// and listen to controller for response
 bool Roboteq::send_Command(std::string command)
 {
   BufferedFilterPtr echoFilter = serialListener.createBufferedFilter(SerialListener::exactly(command));
@@ -153,7 +157,9 @@ bool Roboteq::send_Command(std::string command)
 	}
 	return true;
 }
-
+// move the robot by sending wheel speeds to send command function
+// constrain wheel speeds before sent to controller
+// TODO implement current watch dog
 void Roboteq::move(){
 
 	if(!roboteqIsConnected){
