@@ -32,6 +32,7 @@ private:
   unsigned long Baudrate;
   std::string USB_Port;
   unsigned long baud;
+  int ChunkSize;
 
   // class methods
   void driveCallBack(const geometry_msgs::msg::Twist::SharedPtr msg);
@@ -40,7 +41,7 @@ private:
   unsigned char constrainSpeed(double speed);
   bool send_Command(string command);
   void move();
-  void current_watchdog();
+  bool current_watchdog();
 
    // subscriber
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr Speed;
