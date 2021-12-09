@@ -146,7 +146,7 @@ bool Roboteq::send_Command(std::string command)
 {
   BufferedFilterPtr echoFilter = serialListener.createBufferedFilter(SerialListener::exactly(command));
 	serialPort.write(command+"\r");
-	
+  
 	if (echoFilter->wait(100).empty()) { //TODO lower this timeout when we get it working
 		RCLCPP_ERROR(this->get_logger(), "%s","Failed to receive an echo from Roboteq:(");
 		return false;
