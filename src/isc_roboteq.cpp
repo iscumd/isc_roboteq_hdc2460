@@ -33,7 +33,7 @@ Roboteq::Roboteq(rclcpp::NodeOptions options)
   Speed = this->create_subscription<geometry_msgs::msg::Twist>(
     "/cmd_vel", 10,
     std::bind(&Roboteq::driveCallBack, this, std::placeholders::_1));
-  //move();
+  move();
 }
 
 // Disconnect the controller from serial 
