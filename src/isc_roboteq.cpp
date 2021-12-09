@@ -67,8 +67,13 @@ void Roboteq::connect()
   RCLCPP_INFO(this->get_logger(), "%s%lu","The Set Baudrate is ", Baudrate);  
   RCLCPP_INFO(this->get_logger(), "%s%d","The Set Chunksize is ", ChunkSize);
 
+	serial::Timeout to = serial::Timeout::simpleTimeout(10);
   serialPort.setPort(USB_Port);
   serialPort.setBaudrate(Baudrate);
+  serialPort.setParity(serial::parity_even);
+  serialPort.setStopbits(serial::stopbits_one);
+  serialPort.setBytesize(serial::sevenbits);
+  serialPort.setTimeout(to);
   serialPort.open();
   serialListener.setChunkSize(ChunkSize);
   serialListener.startListening(serialPort);
@@ -141,8 +146,8 @@ bool Roboteq::send_Command(std::string command)
 {
   BufferedFilterPtr echoFilter = serialListener.createBufferedFilter(SerialListener::exactly(command));
 	serialPort.write(command+"\r");
-	
-	if (echoFilter->wait(500).empty()) { //TODO lower this timeout when we get it working
+  
+	if (echoFilter->wait(100).empty()) { //TODO lower this timeout when we get it working
 		RCLCPP_ERROR(this->get_logger(), "%s","Failed to receive an echo from Roboteq:(");
 		return false;
 	}
