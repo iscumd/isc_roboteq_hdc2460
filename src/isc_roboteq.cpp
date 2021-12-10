@@ -1,5 +1,7 @@
 #include <memory>
 #include <functional>
+#include <vector>
+#include <regex>
 #include "std_msgs/msg/string.hpp"
 #include "isc_roboteq/isc_roboteq.hpp"
 #include <serial/serial.h>
@@ -20,8 +22,8 @@ namespace Roboteq
 Roboteq::Roboteq(rclcpp::NodeOptions options)
 : Node("roboteq", options)
 {
-  Max_Current = this->declare_parameter("Max_Current", 30.00);
-  USB_Port = this->declare_parameter("USB_Port", "/dev/ttyUSB0");
+  Max_Current = this->declare_parameter("Max_Current", 40.0);
+  USB_Port = this->declare_parameter("USB_Port", " ");   
   Baudrate = this->declare_parameter("Baudrate", 9600);
   ChunkSize = this->declare_parameter("ChunkSize", 64);
   
@@ -31,12 +33,12 @@ Roboteq::Roboteq(rclcpp::NodeOptions options)
   connect();
    
   Speed = this->create_subscription<geometry_msgs::msg::Twist>(
-    "/cmd_vel", 10,
+    "/cmd_vel", 1,
     std::bind(&Roboteq::driveCallBack, this, std::placeholders::_1));
 }
 
 // Disconnect the controller from serial 
- void Roboteq::disconnect()
+void Roboteq::disconnect()
  {
   if(serialListener.isListening()){
 		serialListener.stopListening();
@@ -45,6 +47,26 @@ Roboteq::Roboteq(rclcpp::NodeOptions options)
 
   roboteqIsConnected = false;
 	RCLCPP_INFO(this->get_logger(), "%s","Port Closed");
+}
+
+// find the port the roboteq is connected to
+// and connect to it
+// TODO regex this *****
+void Roboteq::enumerate_port()
+{
+	std::string roboteq = "Prolific Technology Inc. USB-Serial Controller ";
+	std::regex manufacture("(Prolific)(.*)");
+
+	std::vector<serial::PortInfo> devices = serial::list_ports();
+	std::vector<serial::PortInfo>::iterator ports = devices.begin();
+	while(ports != devices.end())
+	{
+		serial::PortInfo found_port = *ports++;
+		if(std::regex_match(found_port.description.c_str(), manufacture))
+		{
+			USB_Port = found_port.port.c_str();
+		}
+	}
 }
 
 // open serial port
@@ -60,7 +82,8 @@ void Roboteq::connect()
 		RCLCPP_ERROR(this->get_logger(), "%s","Invalid or Empty Serial Port name:(");
 		return;
 	}
-	
+
+  enumerate_port();	
   RCLCPP_INFO(this->get_logger(), "%s%lf","The Set Max Current is ", Max_Current);
   RCLCPP_INFO(this->get_logger(), "%s%s","The Set Port to open is ", USB_Port.c_str());
   RCLCPP_INFO(this->get_logger(), "%s%lu","The Set Baudrate is ", Baudrate);  
@@ -103,11 +126,12 @@ void Roboteq::driveCallBack(const geometry_msgs::msg::Twist::SharedPtr msg)
   rightspeed = (msg->linear.x - msg->angular.z) * speedMultipler;
   leftspeed = (msg->linear.x - msg->angular.z) * speedMultipler;
   move();
-  RCLCPP_INFO(this->get_logger(), "Roboteq: %s%lf%s%lf"," Right Wheel = ",rightspeed, " Left Wheel = ", leftspeed);
+  RCLCPP_INFO(this->get_logger(), "Roboteq: %s%lf%s%lf"," Left Wheel = ", leftspeed, " Right Wheel = ", rightspeed);
 }
 
 // format command string before it is sent to controller
-inline string stringFormat(const string &fmt, ...) {
+inline string stringFormat(const string &fmt, ...) 
+{
   int size = 100;
   string str;
   va_list ap;
@@ -132,7 +156,8 @@ inline string stringFormat(const string &fmt, ...) {
 // utility function to check the response from controller
 // + equals accepted command 
 // - equals failed command
-inline bool isPlusOrMinus(const string &token) {
+inline bool isPlusOrMinus(const string &token) 
+{
 	if (token.find_first_of("+-") != string::npos) {
 		return true;
 	}
@@ -146,7 +171,7 @@ bool Roboteq::send_Command(std::string command)
   BufferedFilterPtr echoFilter = serialListener.createBufferedFilter(SerialListener::exactly(command));
 	serialPort.write(command+"\r");
 	
-	if (echoFilter->wait(50).empty()) { //TODO lower this timeout when we get it working
+	if (echoFilter->wait(50).empty()) { 
 		RCLCPP_ERROR(this->get_logger(), "%s","Failed to receive an echo from Roboteq:(");
 		return false;
 	}
@@ -158,6 +183,8 @@ bool Roboteq::send_Command(std::string command)
 			RCLCPP_ERROR(this->get_logger(), "%s","The Roboteq rejected the command:(");
 			return false;
 		}
+		RCLCPP_ERROR(this->get_logger(), "%s","The Roboteq neither rejected or accepted the command:(");
+		return false;
 	}
 	return true;
 }
@@ -165,20 +192,18 @@ bool Roboteq::send_Command(std::string command)
 // move the robot by sending wheel speeds to send command function
 // constrain wheel speeds before sent to controller
 // TODO implement current watch dog
-void Roboteq::move(){
-
+void Roboteq::move()
+{
 	if(!roboteqIsConnected){
 		RCLCPP_ERROR(this->get_logger(), "%s","The Roboteq needs to connected first:(");
 		return;
 	}
-
 	if(rightspeed < 0){
 		send_Command(stringFormat("!a%.2X", constrainSpeed(rightspeed)));
 	}
 	else{
 		send_Command(stringFormat("!A%.2X", constrainSpeed(rightspeed)));
 	}
-
 	if(leftspeed < 0){
 		send_Command(stringFormat("!b%.2X", constrainSpeed(leftspeed)));
 	}
