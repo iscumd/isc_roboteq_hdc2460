@@ -54,9 +54,7 @@ void Roboteq::disconnect()
 // TODO regex this *****
 void Roboteq::enumerate_port()
 {
-	std::string roboteq = "Prolific Technology Inc. USB-Serial Controller ";
 	std::regex manufacture("(Prolific)(.*)");
-
 	std::vector<serial::PortInfo> devices = serial::list_ports();
 	std::vector<serial::PortInfo>::iterator ports = devices.begin();
 	while(ports != devices.end())
