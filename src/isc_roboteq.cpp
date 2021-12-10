@@ -33,7 +33,6 @@ Roboteq::Roboteq(rclcpp::NodeOptions options)
   Speed = this->create_subscription<geometry_msgs::msg::Twist>(
     "/cmd_vel", 10,
     std::bind(&Roboteq::driveCallBack, this, std::placeholders::_1));
-  move();
 }
 
 // Disconnect the controller from serial 
@@ -67,7 +66,7 @@ void Roboteq::connect()
   RCLCPP_INFO(this->get_logger(), "%s%lu","The Set Baudrate is ", Baudrate);  
   RCLCPP_INFO(this->get_logger(), "%s%d","The Set Chunksize is ", ChunkSize);
 
-	serial::Timeout to = serial::Timeout::simpleTimeout(10);
+  serial::Timeout to = serial::Timeout::simpleTimeout(10);
   serialPort.setPort(USB_Port);
   serialPort.setBaudrate(Baudrate);
   serialPort.setParity(serial::parity_even);
@@ -103,7 +102,7 @@ void Roboteq::driveCallBack(const geometry_msgs::msg::Twist::SharedPtr msg)
   speedMultipler = 127;
   rightspeed = (msg->linear.x - msg->angular.z) * speedMultipler;
   leftspeed = (msg->linear.x - msg->angular.z) * speedMultipler;
-
+  move();
   RCLCPP_INFO(this->get_logger(), "Roboteq: %s%lf%s%lf"," Right Wheel = ",rightspeed, " Left Wheel = ", leftspeed);
 }
 
@@ -146,8 +145,8 @@ bool Roboteq::send_Command(std::string command)
 {
   BufferedFilterPtr echoFilter = serialListener.createBufferedFilter(SerialListener::exactly(command));
 	serialPort.write(command+"\r");
-  
-	if (echoFilter->wait(100).empty()) { //TODO lower this timeout when we get it working
+
+	if (echoFilter->wait(50).empty()) { //TODO lower this timeout when we get it working
 		RCLCPP_ERROR(this->get_logger(), "%s","Failed to receive an echo from Roboteq:(");
 		return false;
 	}
@@ -162,6 +161,7 @@ bool Roboteq::send_Command(std::string command)
 	}
 	return true;
 }
+
 // move the robot by sending wheel speeds to send command function
 // constrain wheel speeds before sent to controller
 // TODO implement current watch dog
