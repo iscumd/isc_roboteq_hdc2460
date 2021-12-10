@@ -51,7 +51,6 @@ void Roboteq::disconnect()
 
 // find the port the roboteq is connected to
 // and connect to it
-// TODO regex this *****
 void Roboteq::enumerate_port()
 {
 	std::regex manufacture("(Prolific)(.*)");
