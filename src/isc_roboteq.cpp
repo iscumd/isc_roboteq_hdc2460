@@ -42,11 +42,11 @@ void Roboteq::disconnect()
  {
   if(serialListener.isListening()){
 		serialListener.stopListening();
-		RCLCPP_INFO(this->get_logger(), "%s","Listener closed");
+		RCLCPP_INFO(this->get_logger(), "%s","Listener closed:)");
   }
 
   roboteqIsConnected = false;
-	RCLCPP_INFO(this->get_logger(), "%s","Port Closed");
+	RCLCPP_INFO(this->get_logger(), "%s","Port Closed:)");
 }
 
 // find the port the roboteq is connected to

@@ -36,6 +36,7 @@ private:
 
   // class methods
   void driveCallBack(const geometry_msgs::msg::Twist::SharedPtr msg);
+  void enumerate_port();
   void disconnect();
   void connect();
   unsigned char constrainSpeed(double speed);
