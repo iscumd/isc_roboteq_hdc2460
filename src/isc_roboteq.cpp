@@ -37,18 +37,6 @@ Roboteq::Roboteq(rclcpp::NodeOptions options)
     std::bind(&Roboteq::driveCallBack, this, std::placeholders::_1));
 }
 
-// Disconnect the controller from serial 
-void Roboteq::disconnect()
- {
-  if(serialListener.isListening()){
-		serialListener.stopListening();
-		RCLCPP_INFO(this->get_logger(), "%s","Listener closed:)");
-  }
-
-  roboteqIsConnected = false;
-	RCLCPP_INFO(this->get_logger(), "%s","Port Closed:)");
-}
-
 // find the port the roboteq is connected to
 // and connect to it
 void Roboteq::enumerate_port()
@@ -96,6 +84,7 @@ void Roboteq::connect()
   serialPort.open();
   serialListener.setChunkSize(ChunkSize);
   serialListener.startListening(serialPort);
+  
   roboteqIsConnected = true;
   
   if(serialPort.isOpen()){
@@ -167,7 +156,6 @@ bool Roboteq::send_Command(std::string command)
 {
   BufferedFilterPtr echoFilter = serialListener.createBufferedFilter(SerialListener::exactly(command));
 	serialPort.write(command+"\r");
-	
 	if (echoFilter->wait(50).empty()) { 
 		RCLCPP_ERROR(this->get_logger(), "%s","Failed to receive an echo from Roboteq:(");
 		return false;
@@ -175,6 +163,8 @@ bool Roboteq::send_Command(std::string command)
 	
 	BufferedFilterPtr plusMinusFilter = serialListener.createBufferedFilter(isPlusOrMinus);
 	std::string result = plusMinusFilter->wait(100);
+	 // remove this friday after testing
+	RCLCPP_INFO(this->get_logger(), "%s%s","The Roboteq sent back a result of ", result);
 	if(result != "+"){
 		if(result == "-"){
 			RCLCPP_ERROR(this->get_logger(), "%s","The Roboteq rejected the command:(");
@@ -207,6 +197,18 @@ void Roboteq::move()
 	else{
 		send_Command(stringFormat("!B%.2X", constrainSpeed(leftspeed)));
 	}
+}
+
+// Disconnect the controller from serial 
+Roboteq::~Roboteq()
+ {
+  if(serialListener.isListening()){
+		serialListener.stopListening();
+		RCLCPP_INFO(this->get_logger(), "%s","Listener closed:)");
+  }
+
+  roboteqIsConnected = false;
+	RCLCPP_INFO(this->get_logger(), "%s","Port Closed:)");
 }
 }
 

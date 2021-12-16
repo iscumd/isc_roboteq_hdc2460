@@ -21,7 +21,8 @@ class Roboteq : public rclcpp::Node
 {
 public:
   explicit Roboteq(rclcpp::NodeOptions options);
-
+  ~Roboteq();
+  
 private:
   // class atributes
   double leftspeed;
@@ -37,12 +38,11 @@ private:
   // class methods
   void driveCallBack(const geometry_msgs::msg::Twist::SharedPtr msg);
   void enumerate_port();
-  void disconnect();
   void connect();
   unsigned char constrainSpeed(double speed);
   bool send_Command(string command);
   void move();
-  bool current_watchdog();
+  void set_current();
 
    // subscriber
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr Speed;
