@@ -160,7 +160,7 @@ bool Roboteq::send_Command(std::string command)
 		RCLCPP_ERROR(this->get_logger(), "%s","Failed to receive an echo from Roboteq:(");
 		return false;
 	}
-	
+
 	BufferedFilterPtr plusMinusFilter = serialListener.createBufferedFilter(isPlusOrMinus);
 	std::string result = plusMinusFilter->wait(100);
 	 // remove this friday after testing
