@@ -1,9 +1,13 @@
 repositories:
   roboteq:
     type: git
-    url: https://github.com/girvenavery2022/isc_roboteq_hdc2460.git
+    url: https://github.com/iscumd/isc_roboteq_hdc2460.git
     version: ros2
   ros2_serial:
     type: git
-    url: https://github.com/RoverRobotics-forks/serial-ros2.git
-    version: master
+    url: https://github.com/iscumd/isc_serial.git
+    version: ros2
+  ros2_serial_utils:
+    type: git
+    url: https://github.com/iscumd/isc_serial_utils.git
+    version: ros2    
