@@ -28,4 +28,4 @@ jobs:
         with:
           package-name: isc_roboteq
           target-ros2-distro: foxy
-          vcs-repo-file-url: https://raw.githubusercontent.com/iscumd/isc_roboteq/ros2/roboteq.repos
+          vcs-repo-file-url: https://raw.githubusercontent.com/iscumd/isc_roboteq_hdc2460/ros2/roboteq.repos
