@@ -108,11 +108,8 @@ unsigned char Roboteq::constrainSpeed(double speed)
 // called every time it recives a Twist message
 void Roboteq::driveCallBack(const geometry_msgs::msg::Twist::SharedPtr msg)
 {
-  speedMultipler = 127;
-  lwr =  rwr =  0.14;
-  ws = 0.6;
-  rightspeed = ((msg->linear.x - msg->angular.z) * ws / 2.0) / rwr;
-  leftspeed = ((msg->linear.x + msg->angular.z) * ws / 2.0) / lwr;
+  rightspeed = (msg->linear.x - msg->angular.z);
+  leftspeed = (msg->linear.x + msg->angular.z);
   move();
   RCLCPP_INFO(this->get_logger(), "Roboteq: %s%lf%s%lf"," Left Wheel = ", leftspeed, " Right Wheel = ", rightspeed);
 }
@@ -212,7 +209,7 @@ Roboteq::~Roboteq()
   roboteqIsConnected = false;
 	RCLCPP_INFO(this->get_logger(), "%s","Port Closed:)");
 }
-}
+} // end of namespace Roboteq
 
 int main(int argc, char * argv[])
 {
