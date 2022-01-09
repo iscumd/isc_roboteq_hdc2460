@@ -27,6 +27,7 @@ private:
   // class atributes
   double leftspeed;
   double rightspeed;
+  double speed_multipler;
   bool roboteqIsConnected;
   double Max_Current;
   unsigned long Baudrate;
