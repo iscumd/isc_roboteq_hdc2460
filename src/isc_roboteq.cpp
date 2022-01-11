@@ -23,7 +23,6 @@ Roboteq::Roboteq(rclcpp::NodeOptions options)
 : Node("roboteq", options)
 {
   Max_Current = this->declare_parameter("Max_Current", 40.0);
-  USB_Port = this->declare_parameter("USB_Port", " ");   
   Baudrate = this->declare_parameter("Baudrate", 9600);
   ChunkSize = this->declare_parameter("ChunkSize", 64);
   
@@ -108,11 +107,9 @@ unsigned char Roboteq::constrainSpeed(double speed)
 // called every time it recives a Twist message
 void Roboteq::driveCallBack(const geometry_msgs::msg::Twist::SharedPtr msg)
 {
-  speedMultipler = 127;
-  lwr =  rwr =  0.14;
-  ws = 0.6;
-  rightspeed = ((msg->linear.x - msg->angular.z) * ws / 2.0) / rwr;
-  leftspeed = ((msg->linear.x + msg->angular.z) * ws / 2.0) / lwr;
+  speed_multipler = 60.0;
+  leftspeed = (msg->linear.x - msg->angular.z) * speed_multipler;
+  rightspeed = (msg->linear.x + msg->angular.z) * speed_multipler;
   move();
   RCLCPP_INFO(this->get_logger(), "Roboteq: %s%lf%s%lf"," Left Wheel = ", leftspeed, " Right Wheel = ", rightspeed);
 }
@@ -153,7 +150,7 @@ inline bool isPlusOrMinus(const string &token)
 }
 
 // send command to controller over serial
-// and listen to controller for response
+// and listen to Roboteq for response
 bool Roboteq::send_Command(std::string command)
 {
   BufferedFilterPtr echoFilter = serialListener.createBufferedFilter(SerialListener::exactly(command));
@@ -165,8 +162,7 @@ bool Roboteq::send_Command(std::string command)
 
 	BufferedFilterPtr plusMinusFilter = serialListener.createBufferedFilter(isPlusOrMinus);
 	std::string result = plusMinusFilter->wait(100);
-	 // remove this friday after testing
-	RCLCPP_INFO(this->get_logger(), "%s%s","The Roboteq sent back a result of ", result);
+
 	if(result != "+"){
 		if(result == "-"){
 			RCLCPP_ERROR(this->get_logger(), "%s","The Roboteq rejected the command:(");
@@ -212,7 +208,7 @@ Roboteq::~Roboteq()
   roboteqIsConnected = false;
 	RCLCPP_INFO(this->get_logger(), "%s","Port Closed:)");
 }
-}
+} // end of namespace Roboteq
 
 int main(int argc, char * argv[])
 {
