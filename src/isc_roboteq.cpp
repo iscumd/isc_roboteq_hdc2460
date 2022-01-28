@@ -58,6 +58,7 @@ void Roboteq::enumerate_port()
 // setup USB protocol parameters
 void Roboteq::connect()
 {
+  enumerate_port();
 	if(roboteqIsConnected){
 		RCLCPP_WARN(this->get_logger(), "%s","Roboteq already connected:)");
 		return;
@@ -66,8 +67,7 @@ void Roboteq::connect()
 		RCLCPP_ERROR(this->get_logger(), "%s","Invalid or Empty Serial Port name:(");
 		return;
 	}
-
-  enumerate_port();	
+	
   RCLCPP_INFO(this->get_logger(), "%s%lf","The Set Max Current is ", Max_Current);
   RCLCPP_INFO(this->get_logger(), "%s%s","The Set Port to open is ", USB_Port.c_str());
   RCLCPP_INFO(this->get_logger(), "%s%lu","The Set Baudrate is ", Baudrate);  
