@@ -25,15 +25,15 @@ public:
   
 private:
   // class atributes
-  double leftspeed;
-  double rightspeed;
+  double left_speed;
+  double right_speed;
   double speed_multipler;
-  bool roboteqIsConnected;
-  double Max_Current;
-  unsigned long Baudrate;
-  std::string USB_Port;
+  bool roboteq_is_connected;
+  double max_current;
+  unsigned long baud_rate;
+  std::string usb_port;
   unsigned long baud;
-  int ChunkSize;
+  int chunk_size;
 
   // class methods
   void driveCallBack(const geometry_msgs::msg::Twist::SharedPtr msg);
@@ -45,7 +45,7 @@ private:
   void set_current();
 
    // subscriber
-  rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr Speed;
+  rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr speed;
 
 };
 }  // namespace Roboteq
