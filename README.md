@@ -1,4 +1,4 @@
-# <roboteq controller>
+# Roboteq Controller
 
 ## Summary
 
@@ -14,21 +14,21 @@ the speed multiplier, which is 60 in our case  and then write it over RS -232 to
 
 ### Subscribes
 
-  1. this node subscribes to the `/cmd_vel` topic published from nav2 or teleop
+- this node subscribes to the `/cmd_vel` topic published from nav2 or teleop
 
 ## Params 
 
  - This node has 3 parameters
  
-  1. Max current
-  2. Baudrate 
-  3. chunck size
+ 1. Max current
+ 2. Baudrate 
+ 3. chunck size
   
 
 ## Potential Improvements
 
-  1. use semaphores or something to synchronize the sending and listening of the roboteq
-  2. current protection of the motors
+ 1. use semaphores or something to synchronize the sending and listening of the roboteq
+ 2. current protection of the motors
 
 # Launch 
 
