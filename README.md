@@ -23,12 +23,6 @@ the speed multiplier, which is 60 in our case  and then write it over RS -232 to
  1. Max current
  2. Baudrate 
  3. chunck size
-  
-
-## Potential Improvements
-
- 1. use semaphores or something to synchronize the sending and listening of the roboteq
- 2. current protection of the motors
 
 # Launch 
 
