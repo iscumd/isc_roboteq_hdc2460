@@ -8,17 +8,17 @@ the speed multiplier, which is 60 in our case  and then write it over RS -232 to
 
 ## Topics 
 
-### Publishes
+### Publisher
 
 - no topics are pubished from this node
 
-### Subscribes
+### Subscriber
 
 - this node subscribes to the `/cmd_vel` topic published from nav2 or teleop
 
 ## Params 
 
- - This node has 3 parameters
+This node has 3 parameters
  
  1. Max current
  2. Baudrate 
