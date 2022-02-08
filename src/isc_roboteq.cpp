@@ -102,14 +102,17 @@ void Roboteq::connect()
 }
 
 // put a speed govenor on how fast the motors can turn
-unsigned char Roboteq::constrainSpeed(double speed)
+int Roboteq::constrainSpeed(double speed)
 {
-  unsigned char temp_speed = fabs(speed);
-    if(temp_speed > 127)
-    {
-        temp_speed = 127;
-    }
-  return temp_speed;
+	if(abs(speed) > 1000){
+		if(speed > 0){
+			speed = 1000;
+	}
+	else{
+		speed = -1000;
+	}		
+	}
+	return speed;
 }
 
 /* 
@@ -211,18 +214,8 @@ void Roboteq::move()
     RCLCPP_ERROR(this->get_logger(), "%s","The Roboteq needs to connected first:(");
     return;
   }
-  if(right_speed < 0){
-    send_Command(stringFormat("!a%.2X", constrainSpeed(right_speed)));
-  }
-  else{
-    send_Command(stringFormat("!A%.2X", constrainSpeed(right_speed)));
-  }
-  if(left_speed < 0){
-    send_Command(stringFormat("!b%.2X", constrainSpeed(left_speed)));
-  }
-  else{
-    send_Command(stringFormat("!B%.2X", constrainSpeed(left_speed)));
-  }
+	send_Command(stringFormat("!G 1 %d", (flip_inputs ? -1 : 1) * constrainSpeed(right_speed)));
+	send_Command(stringFormat("!G 2 %d", (flip_inputs ? -1 : 1) * constrainSpeed(left_speed)));
 }
 
 // Disconnect the controller from serial 

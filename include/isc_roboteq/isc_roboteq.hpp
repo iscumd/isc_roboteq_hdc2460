@@ -34,12 +34,13 @@ private:
   std::string usb_port;
   unsigned long baud;
   int chunk_size;
+  bool flip_inputs = false;
 
   // class methods
   void driveCallBack(const geometry_msgs::msg::Twist::SharedPtr msg);
   void enumerate_port();
   void connect();
-  unsigned char constrainSpeed(double speed);
+  int constrainSpeed(double speed);
   bool send_Command(string command);
   void move();
   void set_current();
