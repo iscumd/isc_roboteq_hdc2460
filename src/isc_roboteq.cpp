@@ -43,7 +43,7 @@ the roboteqs /dev path to the usb_port attribute
 */
 void Roboteq::enumerate_port()
 {
-  std::regex manufacture("(Prolific)(.*)");
+  std::regex manufacture("(Prolific | Roboteq)(.*)");
   std::vector<serial::PortInfo> devices = serial::list_ports();
   std::vector<serial::PortInfo>::iterator ports = devices.begin();
   while(ports != devices.end())
