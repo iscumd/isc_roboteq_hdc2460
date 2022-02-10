@@ -28,7 +28,7 @@ Roboteq::Roboteq(rclcpp::NodeOptions options)
   right_speed = 0;
   left_speed = 0;
   roboteq_is_connected = false;
-  connect();
+  //connect();
    
   speed = this->create_subscription<geometry_msgs::msg::Twist>(
     "/cmd_vel", 1,
@@ -241,6 +241,7 @@ int main(int argc, char * argv[])
   rclcpp::NodeOptions options;
   auto lp_node = std::make_shared<Roboteq::Roboteq>(options);
   exec.add_node(lp_node);
+  lp_node->connect();
   exec.spin();
   rclcpp::shutdown();
   return 0;

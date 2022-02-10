@@ -20,6 +20,7 @@ namespace Roboteq
 class Roboteq : public rclcpp::Node
 {
 public:
+  void connect();
   explicit Roboteq(rclcpp::NodeOptions options);
   ~Roboteq();
   
@@ -38,7 +39,6 @@ private:
   // class methods
   void driveCallBack(const geometry_msgs::msg::Twist::SharedPtr msg);
   void enumerate_port();
-  void connect();
   unsigned char constrainSpeed(double speed);
   void send_Command(string command);
   void move();
