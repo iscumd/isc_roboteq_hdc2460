@@ -122,7 +122,7 @@ and then multiplies it by the speed multipler
 */
 void Roboteq::driveCallBack(const geometry_msgs::msg::Twist::SharedPtr msg)
 {
-  speed_multipler = 60.0;
+  speed_multipler = 450.0;
   left_speed = (msg->linear.x - msg->angular.z) * speed_multipler;
   right_speed = (msg->linear.x + msg->angular.z) * speed_multipler;
   move();
