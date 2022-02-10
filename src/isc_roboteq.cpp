@@ -34,6 +34,10 @@ Roboteq::Roboteq(rclcpp::NodeOptions options)
   speed = this->create_subscription<geometry_msgs::msg::Twist>(
     "/cmd_vel", 1,
     std::bind(&Roboteq::driveCallBack, this, std::placeholders::_1));
+    
+  encoder_timer = this->create_wall_timer(
+            std::chrono::milliseconds(200),
+            std::bind(&Roboteq::get_encoder_count, this));
 }
 
 /*
@@ -173,9 +177,6 @@ inline bool isPlusOrMinus(const string &token)
 /* 
 send command to controller over serial
 and listen to Roboteq for response
-TODO synchronize the writing operation 
-and the listening operation using semaphores
-or locks
 */
 bool Roboteq::send_Command(std::string command)
 {
@@ -216,6 +217,16 @@ void Roboteq::move()
   }
 	send_Command(stringFormat("!G 1 %d", (flip_inputs ? -1 : 1) * constrainSpeed(right_speed)));
 	send_Command(stringFormat("!G 2 %d", (flip_inputs ? -1 : 1) * constrainSpeed(left_speed)));
+}
+
+/* 
+ask the roboteq to return the encoder count
+for each channel 
+*/
+void Roboteq::get_encoder_count()
+{
+	serialPort.write("?CR 1");
+	serialPort.write("?CR 2");
 }
 
 // Disconnect the controller from serial 

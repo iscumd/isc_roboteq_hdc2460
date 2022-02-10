@@ -35,6 +35,7 @@ private:
   unsigned long baud;
   int chunk_size;
   bool flip_inputs = false;
+  rclcpp::TimerBase::SharedPtr encoder_timer;
 
   // class methods
   void driveCallBack(const geometry_msgs::msg::Twist::SharedPtr msg);
@@ -44,6 +45,8 @@ private:
   bool send_Command(string command);
   void move();
   void set_current();
+  void get_encoder_count();
+  void recieve(std::string result);
 
    // subscriber
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr speed;
