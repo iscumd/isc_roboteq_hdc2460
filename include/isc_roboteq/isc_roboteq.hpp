@@ -40,9 +40,10 @@ private:
   void enumerate_port();
   void connect();
   unsigned char constrainSpeed(double speed);
-  bool send_Command(string command);
+  void send_Command(string command);
   void move();
   void set_current();
+  void recieve(std::string result);
 
    // subscriber
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr speed;
