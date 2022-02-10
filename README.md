@@ -8,34 +8,28 @@ the speed multiplier, which is 60 in our case  and then write it over RS -232 to
 
 ## Topics 
 
-### Publishes
+### Publisher
 
 - no topics are pubished from this node
 
-### Subscribes
+### Subscriber
 
 - this node subscribes to the `/cmd_vel` topic published from nav2 or teleop
 
 ## Params 
 
- - This node has 3 parameters
+This node has 3 parameters
  
  1. Max current
  2. Baudrate 
  3. chunck size
-  
 
-## Potential Improvements
-
- 1. use semaphores or something to synchronize the sending and listening of the roboteq
- 2. current protection of the motors
-
-# Launch 
+## Launch 
 
 To launch this package, make sure the roboteq controller is plugged into a usb port and is powered on, after that, 
 source ros and the work space and then type the command `ros2 launch isc_roboteq isc_roboteq.launch.py`
 
-# install/Build
+## install/Build
 1. Change directory into your colcon workspace folder. Example: `cd ~/ros_ws/`
 2. Clone the repository into your colcon workspace: `vcs import src --input https://raw.githubusercontent.com/girvenavery2022/isc_roboteq_hdc2460/ros2/roboteq.repos`
 3. Build the colcon workspace: `colcon build`
