@@ -12,6 +12,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include "std_msgs/msg/header.hpp"
 #include "geometry_msgs/msg/twist.hpp"
+#include "std_msgs/msg/int16.hpp"
 
 using std::string;
 
