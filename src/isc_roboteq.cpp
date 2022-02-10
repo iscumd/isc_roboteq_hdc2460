@@ -28,7 +28,6 @@ Roboteq::Roboteq(rclcpp::NodeOptions options)
   right_speed = 0;
   left_speed = 0;
   roboteq_is_connected = false;
-  //connect();
    
   speed = this->create_subscription<geometry_msgs::msg::Twist>(
     "/cmd_vel", 1,
