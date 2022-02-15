@@ -193,9 +193,6 @@ void Roboteq::recieve(std::string result)
 /* 
 send command to controller over serial
 and listen to Roboteq for response
-TODO synchronize the writing operation 
-and the listening operation using semaphores
-or locks
 */
 void Roboteq::send_Command(std::string command)
 {
@@ -209,7 +206,7 @@ encoder ticks from the roboteq
 void Roboteq::encoderCallBack()
 {
   send_Command("?CR 1");
-  send_Command("?CR 1");
+  send_Command("?CR 2");
 }
 
 /* 
