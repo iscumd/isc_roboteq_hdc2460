@@ -34,6 +34,10 @@ Roboteq::Roboteq(rclcpp::NodeOptions options)
   speed = this->create_subscription<geometry_msgs::msg::Twist>(
     "/cmd_vel", 1,
     std::bind(&Roboteq::driveCallBack, this, std::placeholders::_1));
+
+  timer = this->create_wall_timer(
+    std::chrono::milliseconds(200),
+    std::bind(&Roboteq::encoderCallBack, this));
 }
 
 /*
@@ -87,6 +91,7 @@ void Roboteq::connect()
   serialPort.setTimeout(to);
   serialPort.open();
   serialListener.setChunkSize(chunk_size);
+  serialListener.setDefaultHandler(std::bind(&Roboteq::recieve, this, std::placeholders::_1));
   serialListener.startListening(serialPort);
   
   roboteq_is_connected = true;
@@ -170,6 +175,21 @@ inline bool isPlusOrMinus(const string &token)
   return false;
 }
 
+/*
+call back function that is called when roboteq 
+echos back to the node
+*/
+void Roboteq::recieve(std::string result)
+{
+  if (result.empty()) 
+  { 
+    RCLCPP_ERROR(this->get_logger(), "%s","Failed to receive an echo from Roboteq:(");
+  }
+  // put encoder parser and publisher here
+  // ...
+  // ...
+}
+
 /* 
 send command to controller over serial
 and listen to Roboteq for response
@@ -177,36 +197,24 @@ TODO synchronize the writing operation
 and the listening operation using semaphores
 or locks
 */
-bool Roboteq::send_Command(std::string command)
+void Roboteq::send_Command(std::string command)
 {
-  BufferedFilterPtr echoFilter = serialListener.createBufferedFilter(SerialListener::exactly(command));
-  serialPort.write(command+"\r");
-  if (echoFilter->wait(50).empty()) 
-  { 
-    RCLCPP_ERROR(this->get_logger(), "%s","Failed to receive an echo from Roboteq:(");
-    return false;
-  }
+serialPort.write(command+"\r");
+}
 
-  BufferedFilterPtr plusMinusFilter = serialListener.createBufferedFilter(isPlusOrMinus);
-  std::string result = plusMinusFilter->wait(100);
-
-  if(result != "+")
-  {
-    if(result == "-")
-    {
-      RCLCPP_ERROR(this->get_logger(), "%s","The Roboteq rejected the command:(");
-      return false;
-    }
-    RCLCPP_ERROR(this->get_logger(), "%s","The Roboteq neither rejected or accepted the command:(");
-    return false;
-  }
-  return true;
+/*
+Polling function that requests 
+encoder ticks from the roboteq 
+*/
+void Roboteq::encoderCallBack()
+{
+  send_Command("?CR 1");
+  send_Command("?CR 1");
 }
 
 /* 
 move the robot by sending wheel speeds to send command function
 constrain wheel speeds before sent to controller
-TODO implement current watch dog
 */
 void Roboteq::move()
 {

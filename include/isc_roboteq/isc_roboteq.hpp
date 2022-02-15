@@ -38,15 +38,18 @@ private:
 
   // class methods
   void driveCallBack(const geometry_msgs::msg::Twist::SharedPtr msg);
+  void encoderCallBack();
+  void recieve(std::string result);
   void enumerate_port();
   void connect();
   int constrainSpeed(double speed);
-  bool send_Command(string command);
+  void send_Command(string command);
   void move();
   void set_current();
 
    // subscriber
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr speed;
+  rclcpp::TimerBase::SharedPtr timer;
 
 };
 }  // namespace Roboteq
