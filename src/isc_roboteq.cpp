@@ -132,7 +132,7 @@ void Roboteq::move()
     return;
   }
 
-  // clamp speed, format, and send it of the roboteq
+  // clamp speed, format, and send it of to the roboteq
   if(right_speed < 0){
     send_Command(stringFormat("!a%.2X", std::clamp(right_speed, min_speed, max_speed)));
   }
