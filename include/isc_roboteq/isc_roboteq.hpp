@@ -56,7 +56,7 @@ private:
   * @param command string
   * @return true if the roboteq accepted, else false
   */
-  bool send_Command(string command);
+  bool send_Command(std::string command);
 
   /**
   * @brief Main Function that formats the commands, constrain the speed and sends it to move

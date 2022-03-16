@@ -1,16 +1,15 @@
 #include <string>
 #include <cstdio>
-using std::string;
 
 /**
 * @brief format command string into the format roboteq requires
 * @param fmt const string
 * @return formated string 
 */
-inline string stringFormat(const string &fmt, ...) 
+inline std::string stringFormat(const std::string &fmt, ...) 
 {
   int size = 100;
-  string str;
+  std::string str;
   va_list ap;
   while (1) 
   {
