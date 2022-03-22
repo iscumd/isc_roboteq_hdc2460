@@ -27,6 +27,8 @@ Roboteq::Roboteq(rclcpp::NodeOptions options)
   min_speed = this->declare_parameter("min_speed", 0);
   max_speed = this->declare_parameter("max_speed", 1000);
   speed_multipler = this->declare_parameter("speed_multipler", 450);
+  has_encoders = this->declare_parameter("has_encoders", true);
+  gear_reduction = this->declare_parameter("gear_reduction", 1.0);
 
   right_speed = 0;
   left_speed = 0;
@@ -36,6 +38,10 @@ Roboteq::Roboteq(rclcpp::NodeOptions options)
   speed = this->create_subscription<geometry_msgs::msg::Twist>(
     "/cmd_vel", 1,
     std::bind(&Roboteq::driveCallBack, this, std::placeholders::_1));
+
+  encoder_count_pub_ = this->create_publisher<roboteq_msgs::msg::EncoderCounts>(
+        "/robot/encoder_counts", 10
+  );
 
   using namespace std::chrono_literals;
   param_update_timer = this->create_wall_timer(
@@ -120,13 +126,25 @@ void Roboteq::driveCallBack(const geometry_msgs::msg::Twist::SharedPtr msg)
 
 void Roboteq::recieve(std::string result)
 {
+  roboteq_msgs::msg::EncoderCounts counts;
   if (result.empty()) 
   { 
     RCLCPP_ERROR(this->get_logger(), "%s","Failed to receive an echo from Roboteq:(");
   }
-  // put encoder parser and publisher here
-  // ...
-  // ...
+
+	if (has_encoders) {
+		if (result.substr(0, 3) == "CR=" && !left_encoder_value_recieved) {
+			counts.left_encoder = std::stoi(result.substr(3))/gear_reduction;
+			left_encoder_value_recieved = true;
+		}
+		else {
+			counts.right_encoder = std::stoi(result.substr(3))/gear_reduction;
+			encoder_count_pub_->publish(counts);
+			left_encoder_value_recieved = false;
+		}
+	}
+
+
 }
 
 void Roboteq::send_Command(std::string command)
@@ -136,8 +154,10 @@ serialPort.write(command+"\r");
 
 void Roboteq::encoderCallBack()
 {
-  send_Command("?CR 1");
-  send_Command("?CR 2");
+  if(has_encoders){
+    send_Command("?CR 1");
+    send_Command("?CR 2");
+  }
 }
 
 void Roboteq::move()

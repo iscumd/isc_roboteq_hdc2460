@@ -9,6 +9,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include "std_msgs/msg/header.hpp"
 #include "geometry_msgs/msg/twist.hpp"
+#include "roboteq_msgs/msg/encoder_counts.hpp"
 #include <isc_roboteq/utils.hpp>
 
 using std::string;
@@ -28,11 +29,14 @@ private:
   float min_speed{};
   float max_speed{};
   float speed_multipler{};
+  float gear_reduction;
   bool roboteq_is_connected{};
   unsigned long baud_rate{};
   std::string usb_port{};
   int chunk_size{};
   bool flip_inputs = false;
+  bool left_encoder_value_recieved = false;
+  bool has_encoders;
 
   // class methods
 
@@ -83,6 +87,9 @@ private:
 
   // subscriber
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr speed;
+
+  // publisher
+  rclcpp::Publisher<roboteq_msgs::msg::EncoderCounts>::SharedPtr encoder_count_pub_;
 
   // encoder timer
   rclcpp::TimerBase::SharedPtr timer;
