@@ -127,23 +127,25 @@ void Roboteq::driveCallBack(const geometry_msgs::msg::Twist::SharedPtr msg)
 void Roboteq::recieve(std::string result)
 {
   roboteq_msgs::msg::EncoderCounts counts;
+  int count;
   if (result.empty()) 
   { 
     RCLCPP_ERROR(this->get_logger(), "%s","Failed to receive an echo from Roboteq:(");
   }
 
-	if (has_encoders) {
-		if (result.substr(0, 3) == "CR=" && !left_encoder_value_recieved) {
+	if (has_encoders && result.substr(0, 3) == "CR=") {
+		if (!left_encoder_value_recieved) {
 			counts.left_encoder = std::stoi(result.substr(3))/gear_reduction;
 			left_encoder_value_recieved = true;
 		}
 		else {
 			counts.right_encoder = std::stoi(result.substr(3))/gear_reduction;
-			encoder_count_pub_->publish(counts);
 			left_encoder_value_recieved = false;
+
+      //Publish after recieving both encoder values
+      encoder_count_pub_->publish(counts);
 		}
 	}
-
 
 }
 
