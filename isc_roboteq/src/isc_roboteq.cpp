@@ -133,7 +133,10 @@ void Roboteq::recieve(std::string result)
     RCLCPP_ERROR(this->get_logger(), "%s","Failed to receive an echo from Roboteq:(");
   }
   try{
+      //If encoders are present, check the recieved message to see if its an encoder message
     	if (has_encoders && result.substr(0, 3) == "CR=") {
+        //Encoder values come in one at a time left first then right so keep track of which one youve
+        //Aquired using the variable
 		    if (!left_encoder_value_recieved) {
 			    counts.left_encoder = std::stoi(result.substr(3))/gear_reduction;
 			    left_encoder_value_recieved = true;
