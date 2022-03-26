@@ -1,5 +1,6 @@
 #include <memory>
 #include <functional>
+#include <stdexcept>
 #include <vector>
 #include <regex>
 #include "std_msgs/msg/string.hpp"
@@ -127,25 +128,28 @@ void Roboteq::driveCallBack(const geometry_msgs::msg::Twist::SharedPtr msg)
 void Roboteq::recieve(std::string result)
 {
   roboteq_msgs::msg::EncoderCounts counts;
-  int count;
   if (result.empty()) 
   { 
     RCLCPP_ERROR(this->get_logger(), "%s","Failed to receive an echo from Roboteq:(");
   }
+  try{
+    	if (has_encoders && result.substr(0, 3) == "CR=") {
+		    if (!left_encoder_value_recieved) {
+			    counts.left_encoder = std::stoi(result.substr(3))/gear_reduction;
+			    left_encoder_value_recieved = true;
+	  	}
+		  else {
+			  counts.right_encoder = std::stoi(result.substr(3))/gear_reduction;
+			  left_encoder_value_recieved = false;
 
-	if (has_encoders && result.substr(0, 3) == "CR=") {
-		if (!left_encoder_value_recieved) {
-			counts.left_encoder = std::stoi(result.substr(3))/gear_reduction;
-			left_encoder_value_recieved = true;
-		}
-		else {
-			counts.right_encoder = std::stoi(result.substr(3))/gear_reduction;
-			left_encoder_value_recieved = false;
-
-      //Publish after recieving both encoder values
-      encoder_count_pub_->publish(counts);
-		}
-	}
+        //Publish after recieving both encoder values
+        encoder_count_pub_->publish(counts);
+		  }
+	  }
+  }
+  catch(std::out_of_range& e){
+    RCLCPP_ERROR(this->get_logger(), "Recieved incorrect encoder response from roboteq: %s", e.what());
+  }
 
 }
 

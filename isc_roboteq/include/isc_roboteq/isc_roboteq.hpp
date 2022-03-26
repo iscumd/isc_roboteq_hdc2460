@@ -29,14 +29,14 @@ private:
   float min_speed{};
   float max_speed{};
   float speed_multipler{};
-  float gear_reduction;
+  float gear_reduction{};
   bool roboteq_is_connected{};
   unsigned long baud_rate{};
   std::string usb_port{};
   int chunk_size{};
   bool flip_inputs = false;
   bool left_encoder_value_recieved = false;
-  bool has_encoders;
+  bool has_encoders{};
 
   // class methods
 
