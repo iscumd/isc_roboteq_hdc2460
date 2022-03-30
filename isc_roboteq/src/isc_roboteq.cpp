@@ -4,6 +4,7 @@
 #include <vector>
 #include <regex>
 #include "std_msgs/msg/string.hpp"
+#include "std_msgs/msg/int16.hpp"
 #include "isc_roboteq/isc_roboteq.hpp"
 #include <serial/serial.h>
 #include <serial/utils/serial_listener.h>
@@ -40,11 +41,11 @@ Roboteq::Roboteq(rclcpp::NodeOptions options)
     "/cmd_vel", 1,
     std::bind(&Roboteq::driveCallBack, this, std::placeholders::_1));
 
-  left_encoder_count_pub_ = this->create_publisher<roboteq_msgs::msg::EncoderCounts>(
+  left_encoder_count_pub_ = this->create_publisher<std_msgs::msg::Int16>(
         "/robot/left_encoder_counts", 10
   );
 
-  right_encoder_count_pub_ = this->create_publisher<roboteq_msgs::msg::EncoderCounts>(
+  right_encoder_count_pub_ = this->create_publisher<std_msgs::msg::Int16>(
         "/robot/right_encoder_counts", 10
   );
 
@@ -131,27 +132,29 @@ void Roboteq::driveCallBack(const geometry_msgs::msg::Twist::SharedPtr msg)
 
 void Roboteq::recieve(std::string result)
 {
-  roboteq_msgs::msg::EncoderCounts left_count;
-  roboteq_msgs::msg::EncoderCounts right_count;
+  std_msgs::msg::Int16 left_count;
+  std_msgs::msg::Int16 right_count;
 
   if (result.empty()) 
   { 
     RCLCPP_ERROR(this->get_logger(), "%s","Failed to receive an echo from Roboteq:(");
   }
+  //Check to see if the roboteq has echoed back an encoder command and if so save the
+  //the specific command number, either 1 or 2 (?CR 1, ?CR 2)
   if(result.substr(0, 3) == "?CR"){
   	echo_back = result.substr(4);
   }
   try{
       //If encoders are present, check the recieved message to see if its an encoder message
+      //Use the command number echoed back by the roboteq to determine which encoder topic to
+      //place the value on.
     if (!has_encoders && result.substr(0, 3) == "CR=") {
-        //Encoder values come in one at a time left first then right so keep track of which one youve
-        //Aquired using the variable
 		  if (echo_back == "1") {
-			    right_count.right_encoder = std::stoi(result.substr(3))/gear_reduction;
-          right_encoder_count_pub_->publish(right_count);
+			  right_count.data = static_cast<int16_t>(std::stoi(result.substr(3))/gear_reduction);
+        right_encoder_count_pub_->publish(right_count);
 	  	}
 		  else if(echo_back == "2"){
-			  left_count.left_encoder = std::stoi(result.substr(3))/gear_reduction;
+			  left_count.data = static_cast<int16_t>(std::stoi(result.substr(3))/gear_reduction);
         left_encoder_count_pub_->publish(left_count);
 		  }
 	  }

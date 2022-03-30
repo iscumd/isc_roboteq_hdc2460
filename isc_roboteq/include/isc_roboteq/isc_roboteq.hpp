@@ -88,9 +88,9 @@ private:
   // subscriber
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr speed;
 
-  // publisher
-  rclcpp::Publisher<roboteq_msgs::msg::EncoderCounts>::SharedPtr right_encoder_count_pub_;
-  rclcpp::Publisher<roboteq_msgs::msg::EncoderCounts>::SharedPtr left_encoder_count_pub_;
+  // publishers
+  rclcpp::Publisher<std_msgs::msg::Int16>::SharedPtr right_encoder_count_pub_;
+  rclcpp::Publisher<std_msgs::msg::Int16>::SharedPtr left_encoder_count_pub_;
 
   // encoder timer
   rclcpp::TimerBase::SharedPtr timer;
