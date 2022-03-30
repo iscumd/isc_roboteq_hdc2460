@@ -37,9 +37,9 @@ private:
   bool flip_inputs = false;
   bool left_encoder_value_recieved = false;
   bool has_encoders{};
+  std::string echo_back;
 
   // class methods
-
   /**
   * @brief takes in the cmd velocity and converts it to left/right wheel speeds
   * @param msg geomtry_msgs::msg::Twist::SharedPtr
@@ -89,7 +89,8 @@ private:
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr speed;
 
   // publisher
-  rclcpp::Publisher<roboteq_msgs::msg::EncoderCounts>::SharedPtr encoder_count_pub_;
+  rclcpp::Publisher<roboteq_msgs::msg::EncoderCounts>::SharedPtr right_encoder_count_pub_;
+  rclcpp::Publisher<roboteq_msgs::msg::EncoderCounts>::SharedPtr left_encoder_count_pub_;
 
   // encoder timer
   rclcpp::TimerBase::SharedPtr timer;

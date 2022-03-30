@@ -25,9 +25,9 @@ Roboteq::Roboteq(rclcpp::NodeOptions options)
 {
   baud_rate = this->declare_parameter("baud_rate", 9600);
   chunk_size = this->declare_parameter("chunk_size", 64);
-  min_speed = this->declare_parameter("min_speed", 0);
-  max_speed = this->declare_parameter("max_speed", 1000);
-  speed_multipler = this->declare_parameter("speed_multipler", 450);
+  min_speed = this->declare_parameter("min_speed", -1000.0);
+  max_speed = this->declare_parameter("max_speed", 1000.0);
+  speed_multipler = this->declare_parameter("speed_multipler", 450.0);
   has_encoders = this->declare_parameter("has_encoders", true);
   gear_reduction = this->declare_parameter("gear_reduction", 1.0);
 
@@ -40,8 +40,12 @@ Roboteq::Roboteq(rclcpp::NodeOptions options)
     "/cmd_vel", 1,
     std::bind(&Roboteq::driveCallBack, this, std::placeholders::_1));
 
-  encoder_count_pub_ = this->create_publisher<roboteq_msgs::msg::EncoderCounts>(
-        "/robot/encoder_counts", 10
+  left_encoder_count_pub_ = this->create_publisher<roboteq_msgs::msg::EncoderCounts>(
+        "/robot/left_encoder_counts", 10
+  );
+
+  right_encoder_count_pub_ = this->create_publisher<roboteq_msgs::msg::EncoderCounts>(
+        "/robot/right_encoder_counts", 10
   );
 
   using namespace std::chrono_literals;
@@ -127,26 +131,28 @@ void Roboteq::driveCallBack(const geometry_msgs::msg::Twist::SharedPtr msg)
 
 void Roboteq::recieve(std::string result)
 {
-  roboteq_msgs::msg::EncoderCounts counts;
+  roboteq_msgs::msg::EncoderCounts left_count;
+  roboteq_msgs::msg::EncoderCounts right_count;
+
   if (result.empty()) 
   { 
     RCLCPP_ERROR(this->get_logger(), "%s","Failed to receive an echo from Roboteq:(");
   }
+  if(result.substr(0, 3) == "?CR"){
+  	echo_back = result.substr(4);
+  }
   try{
       //If encoders are present, check the recieved message to see if its an encoder message
-    	if (has_encoders && result.substr(0, 3) == "CR=") {
+    if (!has_encoders && result.substr(0, 3) == "CR=") {
         //Encoder values come in one at a time left first then right so keep track of which one youve
         //Aquired using the variable
-		    if (!left_encoder_value_recieved) {
-			    counts.left_encoder = std::stoi(result.substr(3))/gear_reduction;
-			    left_encoder_value_recieved = true;
+		  if (echo_back == "1") {
+			    right_count.right_encoder = std::stoi(result.substr(3))/gear_reduction;
+          right_encoder_count_pub_->publish(right_count);
 	  	}
-		  else {
-			  counts.right_encoder = std::stoi(result.substr(3))/gear_reduction;
-			  left_encoder_value_recieved = false;
-
-        //Publish after recieving both encoder values
-        encoder_count_pub_->publish(counts);
+		  else if(echo_back == "2"){
+			  left_count.left_encoder = std::stoi(result.substr(3))/gear_reduction;
+        left_encoder_count_pub_->publish(left_count);
 		  }
 	  }
   }
@@ -175,8 +181,8 @@ void Roboteq::move()
     RCLCPP_ERROR(this->get_logger(), "%s","The Roboteq needs to connected first:(");
     return;
   }
-	send_Command(stringFormat("!G 1 %d", (flip_inputs ? -1 : 1) * std::clamp(right_speed, min_speed, max_speed)));
-	send_Command(stringFormat("!G 2 %d", (flip_inputs ? -1 : 1) * std::clamp(left_speed, min_speed, max_speed)));
+	send_Command(stringFormat("!G 1 %f", (flip_inputs ? -1 : 1) * std::clamp(right_speed, min_speed, max_speed)));
+	send_Command(stringFormat("!G 2 %f", (flip_inputs ? -1 : 1) * std::clamp(left_speed, min_speed, max_speed)));
 }
  
 Roboteq::~Roboteq()
