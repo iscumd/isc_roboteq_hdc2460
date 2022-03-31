@@ -172,7 +172,7 @@ serialPort.write(command+"\r");
 
 void Roboteq::encoderCallBack()
 {
-  if(has_encoders){
+  if(!has_encoders){
     send_Command("?CR 1");
     send_Command("?CR 2");
   }
