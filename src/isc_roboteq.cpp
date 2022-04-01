@@ -24,9 +24,9 @@ Roboteq::Roboteq(rclcpp::NodeOptions options)
 {
   baud_rate = this->declare_parameter("baud_rate", 9600);
   chunk_size = this->declare_parameter("chunk_size", 64);
-  min_speed = this->declare_parameter("min_speed", -127);
-  max_speed = this->declare_parameter("max_speed", 127);
-  speed_multipler = this->declare_parameter("speed_multipler", 60);
+  min_speed = this->declare_parameter("min_speed", -127.0);
+  max_speed = this->declare_parameter("max_speed", 127.0);
+  speed_multipler = this->declare_parameter("speed_multipler", 60.0);
 
   right_speed = 0;
   left_speed = 0;

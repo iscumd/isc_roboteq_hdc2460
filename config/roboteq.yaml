@@ -1,0 +1,7 @@
+isc_roboteq:
+  ros__parameters:
+    min_speed: -127.0
+    max_speed: 127.0
+    speed_multipler: 60
+    baud_rate: 9600
+    chunk_size: 64 

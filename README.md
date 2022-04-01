@@ -2,9 +2,9 @@
 
 ## Summary
 
-This ROS2 wrapper for the Roboteq HDC2460 and the Roboteq AX2850 controllers. The node searches all open 
+This ROS2 Driver for the Roboteq HDC2460 and the Roboteq AX2850 controllers. The node searches all open 
 usb ports and finds the one the roboteq is assigned to. from there it computes the left and right wheel speeds, multiplies it by 
-the speed multiplier, which is 60 in our case  and then write it over RS -232 to the controller.
+the speed multiplier, which is 60 in our case and then write it over RS-232 to the controller.
 
 ## Topics 
 
@@ -20,14 +20,16 @@ the speed multiplier, which is 60 in our case  and then write it over RS -232 to
 
 This node has 3 parameters
  
- 1. Max current
- 2. Baudrate 
- 3. chunck size
+ 1. Min Speed
+ 2. Max Speed 
+ 3. Speed Multipler
+ 4. Baudrate 
+ 5. chunck size
 
 ## Launch 
 
 To launch this package, make sure the roboteq controller is plugged into a usb port and is powered on, after that, 
-source ros and the work space and then type the command `ros2 launch isc_roboteq isc_roboteq.launch.py`
+source ros and the work space and then type the command `ros2 launch isc_roboteq roboteq.launch.py`
 
 ## install/Build
 1. Change directory into your colcon workspace folder. Example: `cd ~/ros_ws/`

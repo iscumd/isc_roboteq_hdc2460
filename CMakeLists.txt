@@ -43,6 +43,11 @@ target_include_directories(isc_roboteq PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 
+install(
+  DIRECTORY launch config
+  DESTINATION share/${PROJECT_NAME}/
+)
+
 install(TARGETS isc_roboteq
   DESTINATION lib/${PROJECT_NAME})
   
