@@ -1,5 +1,4 @@
 repositories:
-  roboteq:
   ros2_serial:
     type: git
     url: https://github.com/iscumd/isc_serial.git
