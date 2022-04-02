@@ -1,27 +1,26 @@
 #ifndef ISC_ROBOTEQ__ISC_ROBOTEQ_HPP_
-#define ISC_ROBOTEQ__ISC_ROBOTEQ_
-
-#include <memory>
+#define ISC_ROBOTEQ__ISC_ROBOTEQ_HPP_
 
 #include <math.h>
-#include <vector>
-#include <iostream>
-#include <cstdio>
 #include <unistd.h>
-#include <rclcpp/rclcpp.hpp>
-#include "std_msgs/msg/header.hpp"
-#include "geometry_msgs/msg/twist.hpp"
-#include <isc_roboteq/utils.hpp>
 
-namespace Roboteq
-{
-class Roboteq : public rclcpp::Node
-{
-public:
+#include <cstdio>
+#include <iostream>
+#include <isc_roboteq/utils.hpp>
+#include <memory>
+#include <rclcpp/rclcpp.hpp>
+#include <vector>
+
+#include "geometry_msgs/msg/twist.hpp"
+#include "std_msgs/msg/header.hpp"
+
+namespace Roboteq {
+class Roboteq : public rclcpp::Node {
+ public:
   explicit Roboteq(rclcpp::NodeOptions options);
   ~Roboteq();
 
-private:
+ private:
   // class atributes
   float left_speed{};
   float right_speed{};
@@ -36,36 +35,37 @@ private:
   // class methods
 
   /**
-  * @brief takes in the cmd velocity and converts it to left/right wheel speeds
-  * @param msg geomtry_msgs::msg::Twist::SharedPtr
-  */
+   * @brief takes in the cmd velocity and converts it to left/right wheel speeds
+   * @param msg geomtry_msgs::msg::Twist::SharedPtr
+   */
   void driveCallBack(const geometry_msgs::msg::Twist::SharedPtr msg);
 
   /**
-  * @brief regexs all usb ports to find the roboteq 
-  */
+   * @brief regexs all usb ports to find the roboteq
+   */
   void enumerate_port();
 
   /**
-  * @brief set up all serial/serial listener protocols and connect to the ports
-  */
+   * @brief set up all serial/serial listener protocols and connect to the ports
+   */
   void connect();
 
   /**
-  * @brief sends the command to the roboteq 
-  * @param command string
-  * @return true if the roboteq accepted, else false
-  */
+   * @brief sends the command to the roboteq
+   * @param command string
+   * @return true if the roboteq accepted, else false
+   */
   bool send_Command(std::string command);
 
   /**
-  * @brief Main Function that formats the commands, constrain the speed and sends it to move
-  */
+   * @brief Main Function that formats the commands, constrain the speed and
+   * sends it to move
+   */
   void move();
 
   /**
-  * @brief dynamic param update callback. updates params every 1000ms
-  */
+   * @brief dynamic param update callback. updates params every 1000ms
+   */
   void update_params();
 
   // subscriber
@@ -73,8 +73,7 @@ private:
 
   // wall timer
   rclcpp::TimerBase::SharedPtr param_update_timer;
-
 };
 }  // namespace Roboteq
 
-#endif  //ISC_ROBOTEQ__ISC_ROBOTEQ_HPP_
+#endif  // ISC_ROBOTEQ__ISC_ROBOTEQ_HPP_
