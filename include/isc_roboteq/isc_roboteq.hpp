@@ -14,13 +14,15 @@
 #include "geometry_msgs/msg/twist.hpp"
 #include "std_msgs/msg/header.hpp"
 
-namespace Roboteq {
-class Roboteq : public rclcpp::Node {
- public:
+namespace Roboteq
+{
+class Roboteq : public rclcpp::Node
+{
+  public:
   explicit Roboteq(rclcpp::NodeOptions options);
   ~Roboteq();
 
- private:
+  private:
   // class atributes
   float left_speed{};
   float right_speed{};
