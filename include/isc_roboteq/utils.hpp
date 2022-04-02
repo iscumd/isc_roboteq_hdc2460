@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <stdarg.h>
 #include <string>
 
 /**
