@@ -9,7 +9,6 @@
 #include <rclcpp/rclcpp.hpp>
 #include "std_msgs/msg/header.hpp"
 #include "geometry_msgs/msg/twist.hpp"
-#include "roboteq_msgs/msg/encoder_counts.hpp"
 #include <isc_roboteq/utils.hpp>
 
 using std::string;

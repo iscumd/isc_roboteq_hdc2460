@@ -21,7 +21,6 @@ find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
-find_package(roboteq_msgs REQUIRED)
 find_package(serial REQUIRED)
 find_package(serial_utils REQUIRED)
 find_package(Boost 1.71 CONFIG REQUIRED COMPONENTS thread)
@@ -37,7 +36,6 @@ ament_target_dependencies(
   sensor_msgs
   Boost
   std_msgs
-  roboteq_msgs
   geometry_msgs
 )
 
