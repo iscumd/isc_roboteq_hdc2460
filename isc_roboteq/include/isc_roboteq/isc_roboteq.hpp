@@ -31,6 +31,7 @@ private:
   float gear_reduction{};
   bool roboteq_is_connected{};
   unsigned long baud_rate{};
+  int sign{};
   std::string usb_port{};
   int chunk_size{};
   bool flip_inputs = false;
@@ -78,6 +79,8 @@ private:
   * @brief Main Function that formats the commands, constrain the speed and sends it to move
   */
   void move();
+
+  float clamp_speed(float speed);
 
   /**
   * @brief dynamic param update callback. updates params every 1000ms
