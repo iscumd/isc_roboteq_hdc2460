@@ -1,66 +1,25 @@
-/*
- * Automatic Addison
- * Date: May 20, 2021
- * ROS Version: ROS 1 - Melodic
- * Website: https://automaticaddison.com
- * Publishes odometry information for use with robot_pose_ekf package.
- *   This odometry information is based on wheel encoder tick counts.
- * Subscribe: ROS node that subscribes to the following topics:
- *  right_ticks : Tick counts from the right motor encoder (std_msgs/Int16)
- * 
- *  left_ticks : Tick counts from the left motor encoder  (std_msgs/Int16)
- * 
- *  initial_2d : The initial position and orientation of the robot.
- *               (geometry_msgs/PoseStamped)
- *
- * Publish: This node will publish to the following topics:
- *  odom_data_euler : Position and velocity estimate. The orientation.z 
- *                    variable is an Euler angle representing the yaw angle.
- *                    (nav_msgs/Odometry)
- *  odom_data_quat : Position and velocity estimate. The orientation is 
- *                   in quaternion format.
- *                   (nav_msgs/Odometry)
- * Modified from Practical Robotics in C++ book (ISBN-10 : 9389423465)
- *   by Lloyd Brombach
- */
- 
 #include <cmath>
+#include <tf2/transform_datatypes.h>
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 #include "encoder_odom/ekf_odom_pub.hpp"
 
 EncoderOdom::EncoderOdom(rclcpp::NodeOptions options): Node("encoder_odom", options)
 {
-    ticks_per_revolution = this->declare_parameter("ticks_per_revolution", 620.0);
     wheel_radius = this->declare_parameter("wheel_radius", 0.33); //in meters
-    wheel_base = this->declare_parameter("wheel_base", 0.17); //in meters
+    wheel_seperation = this->declare_parameter("wheel_seperation", 0.17);
 
-    //Determine ticks per meter based on ticks per rev and wheel radius
-    ticks_per_meter = (1.0/((2*M_PI)*wheel_radius)) * ticks_per_revolution;
-
-    // Set the data fields of the odometry message
-    quatOdom.header.frame_id = "odom";
-    quatOdom.pose.pose.position.z = 0;
-    quatOdom.pose.pose.orientation.x = 0;
-    quatOdom.pose.pose.orientation.y = 0;
-    quatOdom.twist.twist.linear.x = 0;
-    quatOdom.twist.twist.linear.y = 0;
-    quatOdom.twist.twist.linear.z = 0;
-    quatOdom.twist.twist.angular.x = 0;
-    quatOdom.twist.twist.angular.y = 0;
-    quatOdom.twist.twist.angular.z = 0;
-    quatOdomOld.pose.pose.position.x = initialX;
-    quatOdomOld.pose.pose.position.y = initialY;
-    qOld.setRPY(0, 0, initialTheta);
-
-
+    //Sync the two encoder count values together. This should come in as wheel rpm
     rmw_qos_profile_t rmw_qos_profile = rmw_qos_profile_sensor_data;
     left_encoder_count_sub_.subscribe(this, "/robot/left_encoder_counts", rmw_qos_profile);
     right_encoder_count_sub_.subscribe(this, "/robot/right_encoder_counts", rmw_qos_profile);
     sync.reset(new Sync(MySyncPolicy(10), left_encoder_count_sub_, right_encoder_count_sub_));
     sync->registerCallback(std::bind(&EncoderOdom::encoder_callback, this, std::placeholders::_1, std::placeholders::_2));
     
-    odom_data_pub_quat_ = this->create_publisher<nav_msgs::msg::Odometry>(
+    odom_data_pub_ = this->create_publisher<nav_msgs::msg::Odometry>(
     "/robot/encoder_odom", 10
     );
+    currentTime = this->get_clock()->now();
+    lastTime = this->get_clock()->now();
 }
 
  
@@ -72,105 +31,55 @@ void EncoderOdom::encoder_callback(const std_msgs::msg::Int16::ConstSharedPtr &l
   //calculate the difference in distance. I could use a similar function so that
   //I could keep track of it.
   
-  //Get the difference between the last encoder values and the current values
-  if(left_encoder->data == lastCountL){
-    //If we are continuously moving in a straight line then distance traveled is the same
-    left_ticks = left_encoder->data;
-  }
-  else if(right_encoder->data == lastCountR){
-    //If we are continuously moving in a straight line then distance traveled is the same
-    right_ticks = right_encoder->data;
-  }
-  else{
-    left_ticks = left_encoder->data - lastCountL;
-    right_ticks = right_encoder->data - lastCountR;
-  }
+  currentTime = this->get_clock()->now();
+  //Generate wheel velocities using RPM
+  left_speed = wheel_radius * left_encoder->data * 0.10472;
+  right_speed = wheel_radius * right_encoder->data * 0.10472;
 
-  //Convert that difference to meters traveled
-  distanceLeft = left_ticks/ticks_per_meter;
-  distanceRight = right_ticks/ticks_per_meter;
+  //Compute velocites
+  delta_time = (currentTime - lastTime).seconds();
+  velocity_x = (right_speed + left_speed) / 2;
+  velocity_y = 0.0;
+  velocity_th = (right_speed - left_speed) / wheel_seperation;
 
-  //Store the current value into the last counts to be used again later
-  lastCountL = left_encoder->data;
-  lastCountR = right_encoder->data;
-  
-  //Update and publish odom
+  //Compute change in x, y, theta position
+  delta_x = (velocity_x * std::cos(theta)) * delta_time;
+  delta_y = (velocity_x * std::sin(theta)) * delta_time;
+  delta_theta = velocity_th * delta_time;
+
+  //Add changes in position to overall position
+  x += delta_x;
+  y += delta_y;
+  theta += delta_theta;
+
+  //Update last time for next iteration
+  lastTime = currentTime;
+
   publish_quat();
+  
 }
  
-// Publish a nav_msgs::Odometry message in quaternion format
 void EncoderOdom::publish_quat() {
- 
-  // Calculate the average distance
-  double cycleDistance = (distanceRight + distanceLeft) / 2;
-   
-  // Calculate the number of radians the robot has turned since the last cycle
-  double cycleAngle = std::asin((distanceRight-distanceLeft)/wheel_base);
- 
-  // Average angle during the last cycle
-  double avgAngle = cycleAngle/2 + qOld.z();
-     
-  if (avgAngle > M_PI) {
-    avgAngle -= 2*M_PI;
-  }
-  else if (avgAngle < -M_PI) {
-    avgAngle += 2*M_PI;
-  }
- 
-  // Calculate the new pose (x, y, and theta)
-  quatOdom.pose.pose.position.x = quatOdomOld.pose.pose.position.x + std::cos(avgAngle)*cycleDistance;
-  quatOdom.pose.pose.position.y = quatOdomOld.pose.pose.position.y + std::sin(avgAngle)*cycleDistance;
-  q.setRPY(0, 0, cycleAngle + qOld.z());
- 
-  // Prevent lockup from a single bad cycle
-  if (std::isnan(quatOdom.pose.pose.position.x) || std::isnan(quatOdom.pose.pose.position.y)
-     || std::isnan(quatOdom.pose.pose.position.z)) {
-    quatOdom.pose.pose.position.x = quatOdomOld.pose.pose.position.x;
-    quatOdom.pose.pose.position.y = quatOdomOld.pose.pose.position.y;
-    q.setRPY(0, 0, qOld.z());
-  }
- 
-  // Make sure theta stays in the correct range
-  if (q.z() > M_PI) {
-    q.setRPY(0, 0, q.z() - 2*M_PI);
-  }
-  else if (q.z() < -M_PI) {
-    q.setRPY(0, 0, q.z() + 2*M_PI);
-  }
 
-  // Compute the velocity
-  quatOdom.header.stamp = this->get_clock()->now();
-  quatOdom.header.frame_id = "odom";
-  quatOdom.child_frame_id = "base_link";
-  quatOdom.twist.twist.linear.x = cycleDistance/(quatOdom.header.stamp.nanosec - quatOdomOld.header.stamp.nanosec);
-  quatOdom.twist.twist.angular.z = cycleAngle/(quatOdom.header.stamp.nanosec - quatOdomOld.header.stamp.nanosec);
+  //Fill odom msg based on data from the callback and publish
+  q.setRPY(0,0,theta);
+  tf2::convert(q, q_msg);
+  odom.header.stamp = this->get_clock()->now();
+  odom.header.frame_id = "odom";
 
-   //Set orientation
-  quatOdom.pose.pose.orientation.x = q.x();
-  quatOdom.pose.pose.orientation.y = q.y();
-  quatOdom.pose.pose.orientation.z = q.z();
-  quatOdom.pose.pose.orientation.w = q.w();
+  odom.pose.pose.position.x = x;
+  odom.pose.pose.position.x = x;
+  //If we are moving up something has gone horribly wrong
+  odom.pose.pose.position.z = 0.0;
+  odom.pose.pose.orientation = q_msg;
 
-  //Fill covariance matrix
-  for(int i = 0; i<36; i++) {
-    if(i == 0 || i == 7 || i == 14) {
-      quatOdom.pose.covariance[i] = .01;
-    }
-    else if (i == 21 || i == 28 || i== 35) {
-      quatOdom.pose.covariance[i] += 0.1;
-    }
-    else {
-      quatOdom.pose.covariance[i] = 0;
-    }
-  }
+  odom.child_frame_id = "base_footprint";
+  odom.twist.twist.linear.x = velocity_x;
+  odom.twist.twist.linear.y = velocity_y;
+  odom.twist.twist.angular.z = velocity_th;
+  
+  odom_data_pub_->publish(odom);
 
-  // Save the pose data for the next cycle
-  quatOdomOld.pose.pose.position.x = quatOdom.pose.pose.position.x;
-  quatOdomOld.pose.pose.position.y = quatOdom.pose.pose.position.y;
-  qOld.setRPY(0, 0, q.z());
-  quatOdomOld.header.stamp = quatOdom.header.stamp;
-
-  odom_data_pub_quat_->publish(quatOdom);
 }
  
 int main(int argc, char **argv) {

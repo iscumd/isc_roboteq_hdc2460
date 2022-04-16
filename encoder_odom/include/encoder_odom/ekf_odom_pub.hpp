@@ -10,6 +10,7 @@
 #include "std_msgs/msg/int16.hpp"
 #include <nav_msgs/msg/odometry.hpp>
 #include <tf2/LinearMath/Quaternion.h>
+#include <geometry_msgs/msg/quaternion.h>
 #include "message_filters/subscriber.h"
 #include "message_filters/time_synchronizer.h"
 #include <message_filters/sync_policies/approximate_time.h>
@@ -22,34 +23,39 @@ public:
  explicit EncoderOdom(rclcpp::NodeOptions options);
 private:
 
-//Initial pose
-const double initialX{0.0};
-const double initialY{0.0};
-const double initialTheta{0.00000000001};
-
 // Robot physical constants
-double ticks_per_revolution{}; // How many ticks per each revolution of the wheel
 double wheel_radius{}; // Wheel radius in meters
-double wheel_base{}; // Center of left tire to center of right tire
-double ticks_per_meter{}; // Based on ticks_per_revolution and wheel size
+double wheel_seperation{}; // Center of left tire to center of right tire
 
-// Distance both wheels have traveled
-double distanceLeft{0};
-double distanceRight{0};
+rclcpp::Time currentTime{};
+rclcpp::Time lastTime{};
 
-int lastCountR{0};
-int lastCountL{0};
-int left_ticks{0};
-int right_ticks{0};
+//Positions
+double x{0.0};
+double y{0.0};
+double theta{0.0};
 
-// Flag to see if initial pose has been received
-bool initialPoseRecieved{false};
+//Velocities in the different directions
+double velocity_x{};
+double velocity_y{0.0};
+double velocity_th{};
+
+
+//Wheel velocities
+double left_speed{};
+double right_speed{};
+
+//Deltas
+double delta_time{};
+double delta_x{};
+double delta_y{};
+double delta_theta{};
+
 
 //Odom msgs
-nav_msgs::msg::Odometry quatOdom{};
-nav_msgs::msg::Odometry quatOdomOld{};
+nav_msgs::msg::Odometry odom{};
+geometry_msgs::msg::Quaternion q_msg{};
 tf2::Quaternion q{};
-tf2::Quaternion qOld{};
 
 void publish_quat();
 
@@ -63,7 +69,7 @@ typedef Synchronizer<MySyncPolicy> Sync;
 std::shared_ptr<Sync> sync;
 
 //Publishers
-rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_data_pub_quat_;
+rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_data_pub_;
 
 
 };

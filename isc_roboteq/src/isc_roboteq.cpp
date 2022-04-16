@@ -179,6 +179,8 @@ void Roboteq::encoderCallBack()
 }
 
 float Roboteq::clamp_speed(float speed){
+  //If speed isnt zero, clamp it to the lowest speed the roboteq can move
+  //the robot at.
   if(speed != 0.0){
     sign = (speed > 0 ? 1 : -1);
     speed = std::clamp(std::abs(speed), min_speed, max_speed);
