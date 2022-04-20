@@ -141,7 +141,7 @@ void Roboteq::recieve(std::string result)
   }
   //Check to see if the roboteq has echoed back an encoder command and if so save the
   //the specific command number, either 1 or 2 (?S 1, ?S 2)
-  if(result.substr(0, 3) == "?S"){
+  if(result.substr(0, 2) == "?S"){
   	echo_back = result.substr(3);
   }
   try{
@@ -150,11 +150,11 @@ void Roboteq::recieve(std::string result)
       //place the value on.
     if (!has_encoders && result.substr(0, 2) == "S=") {
 		  if (echo_back == "1") {
-			  right_count.data = static_cast<int16_t>(std::stoi(result.substr(3))/gear_reduction);
+			  right_count.data = static_cast<int16_t>(std::stoi(result.substr(2))/gear_reduction);
         right_encoder_count_pub_->publish(right_count);
 	  	}
 		  else if(echo_back == "2"){
-			  left_count.data = static_cast<int16_t>(std::stoi(result.substr(3))/gear_reduction);
+			  left_count.data = static_cast<int16_t>(std::stoi(result.substr(2))/gear_reduction);
         left_encoder_count_pub_->publish(left_count);
 		  }
 	  }
