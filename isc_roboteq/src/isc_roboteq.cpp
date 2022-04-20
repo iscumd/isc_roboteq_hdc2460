@@ -26,7 +26,7 @@ Roboteq::Roboteq(rclcpp::NodeOptions options)
 {
   baud_rate = this->declare_parameter("baud_rate", 9600);
   chunk_size = this->declare_parameter("chunk_size", 64);
-  min_speed = this->declare_parameter("min_speed", -1000.0);
+  min_speed = this->declare_parameter("min_speed", 135.0);
   max_speed = this->declare_parameter("max_speed", 1000.0);
   speed_multipler = this->declare_parameter("speed_multipler", 450.0);
   has_encoders = this->declare_parameter("has_encoders", true);
@@ -140,21 +140,21 @@ void Roboteq::recieve(std::string result)
     RCLCPP_ERROR(this->get_logger(), "%s","Failed to receive an echo from Roboteq:(");
   }
   //Check to see if the roboteq has echoed back an encoder command and if so save the
-  //the specific command number, either 1 or 2 (?CR 1, ?CR 2)
-  if(result.substr(0, 3) == "?CR"){
-  	echo_back = result.substr(4);
+  //the specific command number, either 1 or 2 (?S 1, ?S 2)
+  if(result.substr(0, 2) == "?S"){
+  	echo_back = result.substr(3);
   }
   try{
       //If encoders are present, check the recieved message to see if its an encoder message
       //Use the command number echoed back by the roboteq to determine which encoder topic to
       //place the value on.
-    if (!has_encoders && result.substr(0, 3) == "CR=") {
+    if (!has_encoders && result.substr(0, 2) == "S=") {
 		  if (echo_back == "1") {
-			  right_count.data = static_cast<int16_t>(std::stoi(result.substr(3))/gear_reduction);
+			  right_count.data = static_cast<int16_t>(std::stoi(result.substr(2))/gear_reduction);
         right_encoder_count_pub_->publish(right_count);
 	  	}
 		  else if(echo_back == "2"){
-			  left_count.data = static_cast<int16_t>(std::stoi(result.substr(3))/gear_reduction);
+			  left_count.data = static_cast<int16_t>(std::stoi(result.substr(2))/gear_reduction);
         left_encoder_count_pub_->publish(left_count);
 		  }
 	  }
@@ -173,9 +173,21 @@ serialPort.write(command+"\r");
 void Roboteq::encoderCallBack()
 {
   if(!has_encoders){
-    send_Command("?CR 1");
-    send_Command("?CR 2");
+    send_Command("?S 1");
+    send_Command("?S 2");
   }
+}
+
+float Roboteq::clamp_speed(float speed){
+  //If speed isnt zero, clamp it to the lowest speed the roboteq can move
+  //the robot at.
+  if(speed != 0.0){
+    sign = (speed > 0 ? 1 : -1);
+    speed = std::clamp(std::abs(speed), min_speed, max_speed);
+    speed *= sign;
+    return speed;
+  }
+  return speed;
 }
 
 void Roboteq::move()
@@ -184,8 +196,12 @@ void Roboteq::move()
     RCLCPP_ERROR(this->get_logger(), "%s","The Roboteq needs to connected first:(");
     return;
   }
-	send_Command(stringFormat("!G 1 %f", (flip_inputs ? -1 : 1) * std::clamp(right_speed, min_speed, max_speed)));
-	send_Command(stringFormat("!G 2 %f", (flip_inputs ? -1 : 1) * std::clamp(left_speed, min_speed, max_speed)));
+
+  right_speed = clamp_speed(right_speed);
+  left_speed = clamp_speed(left_speed);
+
+	send_Command(stringFormat("!G 1 %f", (flip_inputs ? -1 : 1) * right_speed));
+	send_Command(stringFormat("!G 2 %f", (flip_inputs ? -1 : 1) * left_speed));
 }
  
 Roboteq::~Roboteq()

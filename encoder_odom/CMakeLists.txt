@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 3.8)
-project(roboteq_msgs)
+cmake_minimum_required(VERSION 3.5)
+project(encoder_odom)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -17,10 +17,33 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(rosidl_default_generators REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(message_filters REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
+# uncomment the following section in order to fill in
+# further dependencies manually.
+# find_package(<dependency> REQUIRED)
 
-rosidl_generate_interfaces(roboteq_msgs
-  "msg/EncoderCounts.msg"
+add_executable(encoder_odom src/ekf_odom_pub.cpp)
+ament_target_dependencies(
+  encoder_odom
+  rclcpp
+  nav_msgs
+  std_msgs
+  message_filters
+)
+
+target_include_directories(encoder_odom PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+  
+install(TARGETS encoder_odom
+  DESTINATION lib/${PROJECT_NAME})
+
+install(DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)
