@@ -1,5 +1,4 @@
-#ifndef ENCODER_ODOM__EKF_ODOM_PUB_HPP_
-#define ENCODER_ODOM__EKF_ODOM_PUB_
+#pragma once
 
 #include <memory>
 #include <math.h>
@@ -73,6 +72,3 @@ rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_data_pub_;
 
 
 };
-
-
-#endif  //ENCODER_ODOM__EKF_ODOM_PUB_
