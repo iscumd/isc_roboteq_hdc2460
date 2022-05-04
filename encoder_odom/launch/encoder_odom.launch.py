@@ -16,7 +16,8 @@ def generate_launch_description():
         name='encoder_odom',
         remappings=[
             ('/robot/left_encoder_counts', '/kohm/left_encoder_counts'),
-            ('/robot/right_encoder_counts', '/kohm/right_encoder_counts'), # To allow for easy swaps with pcpl based 3D LiDAR pipelines
+            ('/robot/right_encoder_counts', '/kohm/right_encoder_counts'),
+            ('/robot/encoder_odom', '/kohm/encoder_odom'),
         ],
     )
 
