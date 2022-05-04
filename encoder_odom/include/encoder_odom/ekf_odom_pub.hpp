@@ -13,7 +13,8 @@
 #include "message_filters/subscriber.h"
 #include "message_filters/time_synchronizer.h"
 #include <message_filters/sync_policies/approximate_time.h>
-
+#include <tf2_ros/transform_broadcaster.h>
+#include <geometry_msgs/msg/transform_stamped.hpp>
 using namespace message_filters;
 
 class EncoderOdom: public rclcpp::Node
@@ -25,10 +26,12 @@ private:
 // Robot physical constants
 double wheel_radius{}; // Wheel radius in meters
 double wheel_seperation{}; // Center of left tire to center of right tire
+double gear_ratio{}; //Gearing of the motor
 
 rclcpp::Time currentTime{};
 rclcpp::Time lastTime{};
 
+rclcpp::Time message_time{};
 //Positions
 double x{0.0};
 double y{0.0};
@@ -55,6 +58,7 @@ double delta_theta{};
 nav_msgs::msg::Odometry odom{};
 geometry_msgs::msg::Quaternion q_msg{};
 tf2::Quaternion q{};
+geometry_msgs::msg::TransformStamped trans{};
 
 void publish_quat();
 
@@ -69,6 +73,5 @@ std::shared_ptr<Sync> sync;
 
 //Publishers
 rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_data_pub_;
-
-
+std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
 };

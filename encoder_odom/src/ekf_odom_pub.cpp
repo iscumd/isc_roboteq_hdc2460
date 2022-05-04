@@ -1,12 +1,14 @@
 #include <cmath>
 #include <tf2/transform_datatypes.h>
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
+#include <tf2_ros/transform_broadcaster.h>
 #include "encoder_odom/ekf_odom_pub.hpp"
 
 EncoderOdom::EncoderOdom(rclcpp::NodeOptions options): Node("encoder_odom", options)
 {
     wheel_radius = this->declare_parameter("wheel_radius", 0.33); //in meters
     wheel_seperation = this->declare_parameter("wheel_seperation", 0.17);
+    gear_ratio = this->declare_parameter("gear_ratio", 18.0); // gear_ratio:1
 
     //Sync the two encoder count values together. This should come in as wheel rpm
     rmw_qos_profile_t rmw_qos_profile = rmw_qos_profile_sensor_data;
@@ -18,23 +20,19 @@ EncoderOdom::EncoderOdom(rclcpp::NodeOptions options): Node("encoder_odom", opti
     odom_data_pub_ = this->create_publisher<nav_msgs::msg::Odometry>(
     "/robot/encoder_odom", 10
     );
+    tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
     currentTime = this->get_clock()->now();
     lastTime = this->get_clock()->now();
 }
 
  
 void EncoderOdom::encoder_callback(const std_msgs::msg::Int16::ConstSharedPtr &left_encoder, const std_msgs::msg::Int16::ConstSharedPtr &right_encoder){
-  //Calculate how far weve moved based on the encoder values given
-  //We need to get the distance that the robot has traveled between the last
-  //Encoder message and this encoder message. To do this the original program used
-  //A variable that would store the last message value recieved and use that to
-  //calculate the difference in distance. I could use a similar function so that
-  //I could keep track of it.
-  
+  //Calculate how far weve moved based on the rpm values given adjusted for gear ratios  
   currentTime = this->get_clock()->now();
+
   //Generate wheel velocities using RPM
-  left_speed = wheel_radius * left_encoder->data * 0.10472;
-  right_speed = wheel_radius * right_encoder->data * 0.10472;
+  left_speed = wheel_radius * (left_encoder->data/gear_ratio) * 0.10472;
+  right_speed = wheel_radius * (right_encoder->data/gear_ratio) * 0.10472;
 
   //Compute velocites
   delta_time = (currentTime - lastTime).seconds();
@@ -64,13 +62,33 @@ void EncoderOdom::publish_quat() {
   //Fill odom msg based on data from the callback and publish
   q.setRPY(0,0,theta);
   tf2::convert(q, q_msg);
-  odom.header.stamp = this->get_clock()->now();
+  message_time = this->get_clock()->now();
+
+  //Send tf translation
+  trans.header.stamp = message_time;
+  trans.header.frame_id = "odom";
+  trans.child_frame_id = "base_footprint";
+
+  //Set x and y translations, wheel encoders wont tell us if were moving up
+  //so z translation is set to zero
+  trans.transform.translation.x = x;
+  trans.transform.translation.y = y;
+  trans.transform.translation.z = 0.0;
+
+  trans.transform.rotation = q_msg;
+
+  tf_broadcaster_->sendTransform(trans);
+
+  //Publish odom message
+  odom.header.stamp = message_time;
   odom.header.frame_id = "odom";
 
+  //Set x and y position, wheel encoders wont tell us if were moving up
+  //so z translation is set to zero
   odom.pose.pose.position.x = x;
-  odom.pose.pose.position.x = x;
-  //If we are moving up something has gone horribly wrong
+  odom.pose.pose.position.y = y;
   odom.pose.pose.position.z = 0.0;
+
   odom.pose.pose.orientation = q_msg;
 
   odom.child_frame_id = "base_footprint";
