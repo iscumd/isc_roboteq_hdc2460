@@ -38,9 +38,9 @@ double y{0.0};
 double theta{0.0};
 
 //Velocities in the different directions
-double velocity_x{};
+double velocity_x{0.0};
 double velocity_y{0.0};
-double velocity_th{};
+double velocity_th{0.0};
 
 
 //Wheel velocities
@@ -49,9 +49,9 @@ double right_speed{};
 
 //Deltas
 double delta_time{};
-double delta_x{};
-double delta_y{};
-double delta_theta{};
+double delta_x{0.0};
+double delta_y{0.0};
+double delta_theta{0.0};
 
 
 //Odom msgs

@@ -7,7 +7,7 @@
 EncoderOdom::EncoderOdom(rclcpp::NodeOptions options): Node("encoder_odom", options)
 {
     wheel_radius = this->declare_parameter("wheel_radius", 0.33); //in meters
-    wheel_seperation = this->declare_parameter("wheel_seperation", 0.17);
+    wheel_seperation = this->declare_parameter("wheel_seperation", 0.47); //in meters
     gear_ratio = this->declare_parameter("gear_ratio", 18.0); // gear_ratio:1
 
     //Sync the two encoder count values together. This should come in as wheel rpm
