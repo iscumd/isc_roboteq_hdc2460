@@ -6,7 +6,7 @@
 
 EncoderOdom::EncoderOdom(rclcpp::NodeOptions options): Node("encoder_odom", options)
 {
-    wheel_radius = this->declare_parameter("wheel_radius", 0.33); //in meters
+    wheel_radius = this->declare_parameter("wheel_radius", 0.165); //in meters
     wheel_seperation = this->declare_parameter("wheel_seperation", 0.17);
     gear_ratio = this->declare_parameter("gear_ratio", 18.0); // gear_ratio:1
 
@@ -41,8 +41,8 @@ void EncoderOdom::encoder_callback(const std_msgs::msg::Int16::ConstSharedPtr &l
   velocity_th = (right_speed - left_speed) / wheel_seperation;
 
   //Compute change in x, y, theta position
-  delta_x = (velocity_x * std::cos(theta)) * delta_time;
-  delta_y = (velocity_x * std::sin(theta)) * delta_time;
+  delta_x = std::cos(theta) * (velocity_x * delta_time);
+  delta_y = std::sin(theta) * (velocity_x * delta_time);
   delta_theta = velocity_th * delta_time;
 
   //Add changes in position to overall position
@@ -54,7 +54,6 @@ void EncoderOdom::encoder_callback(const std_msgs::msg::Int16::ConstSharedPtr &l
   lastTime = currentTime;
 
   publish_quat();
-  
 }
  
 void EncoderOdom::publish_quat() {
