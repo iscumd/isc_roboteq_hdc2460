@@ -30,7 +30,7 @@ void EncoderOdom::encoder_callback(const std_msgs::msg::Int16::ConstSharedPtr &l
   //Calculate how far weve moved based on the rpm values given adjusted for gear ratios  
   currentTime = this->get_clock()->now();
 
-  //Generate wheel velocities using RPM
+  //Generate wheel speed using RPM
   left_speed = wheel_radius * (left_encoder->data/gear_ratio) * 0.10472;
   right_speed = wheel_radius * (right_encoder->data/gear_ratio) * 0.10472;
 
