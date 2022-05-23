@@ -27,6 +27,7 @@ private:
 double wheel_radius{}; // Wheel radius in meters
 double wheel_seperation{}; // Center of left tire to center of right tire
 double gear_ratio{}; //Gearing of the motor
+bool publish_odom_tf{};
 
 rclcpp::Time currentTime{};
 rclcpp::Time lastTime{};

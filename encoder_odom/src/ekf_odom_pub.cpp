@@ -9,6 +9,7 @@ EncoderOdom::EncoderOdom(rclcpp::NodeOptions options): Node("encoder_odom", opti
     wheel_radius = this->declare_parameter("wheel_radius", 0.165); //in meters
     wheel_seperation = this->declare_parameter("wheel_seperation", 0.47); //in meters
     gear_ratio = this->declare_parameter("gear_ratio", 18.0); // gear_ratio:1
+    publish_odom_tf = this->declare_parameter("publish_odom_tf", false); // Whether or not to publish odom -> base_link transform
 
     //Sync the two encoder count values together. This should come in as wheel rpm
     rmw_qos_profile_t rmw_qos_profile = rmw_qos_profile_sensor_data;
@@ -63,20 +64,22 @@ void EncoderOdom::publish_quat() {
   tf2::convert(q, q_msg);
   message_time = this->get_clock()->now();
 
-  //Send tf translation
-  trans.header.stamp = message_time;
-  trans.header.frame_id = "odom";
-  trans.child_frame_id = "base_footprint";
+  if(publish_odom_tf){
+    //Send tf translation
+    trans.header.stamp = message_time;
+    trans.header.frame_id = "odom";
+    trans.child_frame_id = "base_footprint";
 
-  //Set x and y translations, wheel encoders wont tell us if were moving up
-  //so z translation is set to zero
-  trans.transform.translation.x = x;
-  trans.transform.translation.y = y;
-  trans.transform.translation.z = 0.0;
+    //Set x and y translations, wheel encoders wont tell us if were moving up
+    //so z translation is set to zero
+    trans.transform.translation.x = x;
+    trans.transform.translation.y = y;
+    trans.transform.translation.z = 0.0;
 
-  trans.transform.rotation = q_msg;
+    trans.transform.rotation = q_msg;
 
-  tf_broadcaster_->sendTransform(trans);
+    tf_broadcaster_->sendTransform(trans);
+  }
 
   //Publish odom message
   odom.header.stamp = message_time;
