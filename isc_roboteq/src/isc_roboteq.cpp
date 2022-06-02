@@ -26,9 +26,9 @@ Roboteq::Roboteq(rclcpp::NodeOptions options)
 {
   baud_rate = this->declare_parameter("baud_rate", 9600);
   chunk_size = this->declare_parameter("chunk_size", 64);
-  min_speed = this->declare_parameter("min_speed", 250.0);
-  max_speed = this->declare_parameter("max_speed", 1000.0);
-  speed_multipler = this->declare_parameter("speed_multipler", 450.0);
+  min_speed = this->declare_parameter("min_speed", 450.0);
+  max_speed = this->declare_parameter("max_speed", 500.0);
+  speed_multipler = this->declare_parameter("speed_multipler", 350.0);
   has_encoders = this->declare_parameter("has_encoders", true);
   gear_reduction = this->declare_parameter("gear_reduction", 1.0);
 
