@@ -26,9 +26,9 @@ Roboteq::Roboteq(rclcpp::NodeOptions options)
 {
   baud_rate = this->declare_parameter("baud_rate", 9600);
   chunk_size = this->declare_parameter("chunk_size", 64);
-  min_speed = this->declare_parameter("min_speed", 450.0);
-  max_speed = this->declare_parameter("max_speed", 500.0);
-  speed_multipler = this->declare_parameter("speed_multipler", 350.0);
+  min_speed = this->declare_parameter("min_speed", 400.0);
+  max_speed = this->declare_parameter("max_speed", 600.0);
+  speed_multipler = this->declare_parameter("speed_multipler", 375.0);
   has_encoders = this->declare_parameter("has_encoders", true);
   gear_reduction = this->declare_parameter("gear_reduction", 1.0);
 
@@ -202,6 +202,7 @@ void Roboteq::move()
 
 	send_Command(stringFormat("!G 1 %f", (flip_inputs ? -1 : 1) * right_speed));
 	send_Command(stringFormat("!G 2 %f", (flip_inputs ? -1 : 1) * left_speed));
+  RCLCPP_INFO(this->get_logger(), "Left Speed: %f , Right Speed: %f", left_speed, right_speed);
 }
  
 Roboteq::~Roboteq()
