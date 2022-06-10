@@ -26,9 +26,9 @@ Roboteq::Roboteq(rclcpp::NodeOptions options)
 {
   baud_rate = this->declare_parameter("baud_rate", 9600);
   chunk_size = this->declare_parameter("chunk_size", 64);
-  min_speed = this->declare_parameter("min_speed", 400.0);
-  max_speed = this->declare_parameter("max_speed", 600.0);
-  speed_multipler = this->declare_parameter("speed_multipler", 375.0);
+  min_speed = this->declare_parameter("min_speed", 500.0);
+  max_speed = this->declare_parameter("max_speed", 500.0);
+  speed_multipler = this->declare_parameter("speed_multipler", 400.0);
   has_encoders = this->declare_parameter("has_encoders", true);
   gear_reduction = this->declare_parameter("gear_reduction", 1.0);
 
@@ -47,6 +47,10 @@ Roboteq::Roboteq(rclcpp::NodeOptions options)
 
   right_encoder_count_pub_ = this->create_publisher<std_msgs::msg::Int16>(
         "/robot/right_encoder_counts", 10
+  );
+
+  roboteq_wheel_speed_pub_ = this->create_publisher<std_msgs::msg::String>(
+        "/robot/motor_speeds", 10
   );
 
   using namespace std::chrono_literals;
@@ -127,7 +131,6 @@ void Roboteq::driveCallBack(const geometry_msgs::msg::Twist::SharedPtr msg)
   left_speed = (msg->linear.x - msg->angular.z) * speed_multipler;
   right_speed = (msg->linear.x + msg->angular.z) * speed_multipler;
   move();
-  //RCLCPP_INFO(this->get_logger(), "Roboteq: %s%lf%s%lf"," Left Wheel = ", left_speed, " Right Wheel = ", right_speed);
 }
 
 void Roboteq::recieve(std::string result)
@@ -182,6 +185,13 @@ float Roboteq::clamp_speed(float speed){
   //If speed isnt zero, clamp it to the lowest speed the roboteq can move
   //the robot at.
   if(speed != 0.0){
+
+    //TODO this may not work
+    //if(speed > 0 && speed < max_speed) {
+    //  speed = 0.0;
+    //  return speed
+    //}
+
     sign = (speed > 0 ? 1 : -1);
     speed = std::clamp(std::abs(speed), min_speed, max_speed);
     speed *= sign;
@@ -199,10 +209,12 @@ void Roboteq::move()
 
   right_speed = clamp_speed(right_speed);
   left_speed = clamp_speed(left_speed);
+  RCLCPP_INFO(this->get_logger(), "Roboteq: %s%lf%s%lf"," Left Wheel = ", left_speed, " Right Wheel = ", right_speed);
+  speed_msg.data = "Roboteq: left_speed: " + std::to_string(left_speed) + ", right_speed: " + std::to_string(right_speed);
+  roboteq_wheel_speed_pub_->publish(speed_msg);
 
 	send_Command(stringFormat("!G 1 %f", (flip_inputs ? -1 : 1) * right_speed));
 	send_Command(stringFormat("!G 2 %f", (flip_inputs ? -1 : 1) * left_speed));
-  RCLCPP_INFO(this->get_logger(), "Left Speed: %f , Right Speed: %f", left_speed, right_speed);
 }
  
 Roboteq::~Roboteq()

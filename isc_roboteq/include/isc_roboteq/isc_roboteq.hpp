@@ -9,6 +9,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include "std_msgs/msg/header.hpp"
 #include "geometry_msgs/msg/twist.hpp"
+#include "std_msgs/msg/string.hpp"
 #include <isc_roboteq/utils.hpp>
 
 using std::string;
@@ -37,6 +38,7 @@ private:
   bool flip_inputs = false;
   bool left_encoder_value_recieved = false;
   bool has_encoders{};
+  std_msgs::msg::String speed_msg{};
   std::string echo_back;
 
   // class methods
@@ -93,6 +95,7 @@ private:
   // publishers
   rclcpp::Publisher<std_msgs::msg::Int16>::SharedPtr right_encoder_count_pub_;
   rclcpp::Publisher<std_msgs::msg::Int16>::SharedPtr left_encoder_count_pub_;
+  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr roboteq_wheel_speed_pub_;
 
   // encoder timer
   rclcpp::TimerBase::SharedPtr timer;
